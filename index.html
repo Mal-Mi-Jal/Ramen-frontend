@@ -526,12 +526,14 @@
 
   // ── 방문 인증 ──────────────────────────────
   async function openVerify() {
+
   if (!token) {
     showToast('로그인이 필요해요');
     return;
   }
 
   try {
+
     const pos = await getPosition();
 
     const r = await fetch(API + '/verifications/enter', {
@@ -549,46 +551,71 @@
 
     const d = await r.json();
 
-    // 서버에서 실패 응답이 온 경우
+    // 이미 진행중인 인증
+    if (d.code === 'ALREADY_PENDING') {
+
+      showToast('진행 중인 방문 인증이 있습니다.');
+
+      document.getElementById('verify-modal').style.display = 'flex';
+
+      return;
+    }
+
+    // 실패
     if (!r.ok || !d.success) {
-      showToast(d.message || '방문 인증을 시작할 수 없습니다.');
+      showToast(
+        d.message ||
+        '방문 인증을 시작할 수 없습니다.'
+      );
       return;
     }
 
     // 인증 시작 성공
-    currentVerificationId = d.data?.verification_id;
+    currentVerificationId =
+      d.data?.verification_id;
 
     document.getElementById('verify-modal').style.display = 'flex';
 
-    document.getElementById('mstep2').classList.remove('done');
+    document.getElementById('mstep2')
+      .classList.remove('done');
+
     document.getElementById('mstep2').innerHTML =
       '<i class="ti ti-clock"></i> 20분 체류 대기 중...';
 
-    document.getElementById('verify-cta').style.display = 'none';
+    document.getElementById('verify-cta').style.display =
+      'none';
 
     timerSec = 1200;
+
     updateTimerUI();
 
     clearInterval(timerInterval);
 
-    // 테스트용 (실배포시 1000ms)
     timerInterval = setInterval(() => {
+
       timerSec = Math.max(0, timerSec - 1);
 
       updateTimerUI();
 
       if (timerSec === 0) {
+
         clearInterval(timerInterval);
 
-        document.getElementById('mstep2').classList.add('done');
+        document.getElementById('mstep2')
+          .classList.add('done');
+
         document.getElementById('mstep2').innerHTML =
           '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
 
-        document.getElementById('verify-cta').style.display = 'block';
+        document.getElementById('verify-cta').style.display =
+          'block';
       }
+
     }, 50);
 
-  } catch (e) {
+  }
+  catch (e) {
+
     console.error(e);
 
     showToast(
@@ -618,16 +645,22 @@
         });
       } catch (e) {}
     }
-    clearInterval(timerInterval);
     closeVerify();
     goWrite();
   }
 
   function closeVerify(e) {
-    if (e && e.target !== document.getElementById('verify-modal')) return;
-    clearInterval(timerInterval);
-    document.getElementById('verify-modal').style.display = 'none';
+
+  if (
+    e &&
+    e.target !== document.getElementById('verify-modal')
+  ) {
+    return;
   }
+
+  document.getElementById('verify-modal').style.display =
+    'none';
+}
 
   // ── 리뷰 작성 ─────────────────────────────
   function goWrite() {
