@@ -526,44 +526,76 @@
 
   // ── 방문 인증 ──────────────────────────────
   async function openVerify() {
-    if (!token) { showToast('로그인이 필요해요'); return; }
-    // 실제: GPS로 진입 감지 후 /verifications/enter 호출
-    try {
-      const pos = await getPosition();
-      const r = await fetch(API + '/verifications/enter', {
-        method: 'POST',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          restaurant_id: currentRestaurant.id,
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
-        })
-      });
-      const d = await r.json();
-      if (r.ok || r.status === 201) {
-        currentVerificationId = d.data?.verification_id;
-      }
-    } catch (e) {}
+  if (!token) {
+    showToast('로그인이 필요해요');
+    return;
+  }
+
+  try {
+    const pos = await getPosition();
+
+    const r = await fetch(API + '/verifications/enter', {
+      method: 'POST',
+      headers: {
+        ...authHeader(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        restaurant_id: currentRestaurant.id,
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude
+      })
+    });
+
+    const d = await r.json();
+
+    // 서버에서 실패 응답이 온 경우
+    if (!r.ok || !d.success) {
+      showToast(d.message || '방문 인증을 시작할 수 없습니다.');
+      return;
+    }
+
+    // 인증 시작 성공
+    currentVerificationId = d.data?.verification_id;
 
     document.getElementById('verify-modal').style.display = 'flex';
+
     document.getElementById('mstep2').classList.remove('done');
-    document.getElementById('mstep2').innerHTML = '<i class="ti ti-clock"></i> 20분 체류 대기 중...';
+    document.getElementById('mstep2').innerHTML =
+      '<i class="ti ti-clock"></i> 20분 체류 대기 중...';
+
     document.getElementById('verify-cta').style.display = 'none';
+
     timerSec = 1200;
     updateTimerUI();
+
     clearInterval(timerInterval);
-    // 데모용: 실제 배포에서는 interval을 1000ms로 변경
+
+    // 테스트용 (실배포시 1000ms)
     timerInterval = setInterval(() => {
       timerSec = Math.max(0, timerSec - 1);
+
       updateTimerUI();
+
       if (timerSec === 0) {
         clearInterval(timerInterval);
+
         document.getElementById('mstep2').classList.add('done');
-        document.getElementById('mstep2').innerHTML = '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
+        document.getElementById('mstep2').innerHTML =
+          '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
+
         document.getElementById('verify-cta').style.display = 'block';
       }
-    }, 50); // 👈 실제 배포 시 50 → 1000 으로 변경
+    }, 50);
+
+  } catch (e) {
+    console.error(e);
+
+    showToast(
+      '위치 정보를 가져올 수 없어요. 브라우저 위치 권한을 확인해주세요.'
+    );
   }
+}
 
   function updateTimerUI() {
     const m = Math.floor(timerSec / 60);
