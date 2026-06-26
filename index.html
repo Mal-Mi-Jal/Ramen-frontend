@@ -141,6 +141,65 @@
 
     .empty{padding:40px 20px;text-align:center;color:var(--text3);font-size:14px}
     .loading{padding:40px 20px;text-align:center;color:var(--text3);font-size:14px}
+    .comments-box{
+
+    margin-top:12px;
+
+    padding-top:10px;
+
+    border-top:1px solid #eee;
+
+}
+
+.comment-item{
+
+    margin-bottom:12px;
+
+}
+
+.comment-user{
+
+    font-weight:600;
+
+}
+
+.comment-content{
+
+    margin:6px 0;
+
+}
+
+.comment-date{
+
+    color:#999;
+
+    font-size:12px;
+
+}
+
+.comment-write{
+
+    display:flex;
+
+    gap:8px;
+
+    margin-top:10px;
+
+}
+
+.comment-write input{
+
+    flex:1;
+
+    padding:8px;
+
+}
+
+.comment-write button{
+
+    padding:8px 12px;
+
+}
   </style>
 </head>
 <body>
@@ -525,9 +584,11 @@
               <i class="ti ti-heart"></i> ${rv.like_count || 0}
             </button>
             <button class="comment-btn">
+            onclick="toggleComments('${rv.id}')">
               <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
             </button>
           </div>
+          <div id="comments-${rv.id}" class="comments-box" style="display:none"></div>
         </div>
       `).join('');
     } catch (e) {
@@ -553,6 +614,128 @@
       showToast('로그인이 필요해요');
     }
   }
+
+  async function toggleComments(reviewId){
+
+    const box = document.getElementById(`comments-${reviewId}`);
+
+    if(box.style.display === "block"){
+        box.style.display = "none";
+        return;
+    }
+
+    box.style.display = "block";
+    box.innerHTML = "댓글 불러오는 중...";
+
+    try{
+
+        const r = await fetch(
+            `${API}/reviews/${reviewId}/comments?page=1&size=30`
+        );
+
+        const d = await r.json();
+
+        const comments = d.data.comments;
+
+        box.innerHTML = comments.map(c=>`
+
+            <div class="comment-item">
+
+                <div class="comment-user">
+                    <b>${c.user.nickname}</b>
+                </div>
+
+                <div class="comment-content">
+                    ${c.content}
+                </div>
+
+                <div class="comment-date">
+                    ${formatDate(c.created_at)}
+                </div>
+
+            </div>
+
+        `).join("");
+
+        box.innerHTML += `
+
+            <div class="comment-write">
+
+                <input
+                    id="comment-input-${reviewId}"
+                    placeholder="댓글을 입력하세요">
+
+                <button
+                    onclick="writeComment('${reviewId}')">
+
+                    등록
+
+                </button>
+
+            </div>
+
+        `;
+
+    }catch(e){
+
+        showToast("댓글을 불러오지 못했습니다.");
+
+    }
+
+}
+
+async function writeComment(reviewId){
+
+    const input =
+        document.getElementById(`comment-input-${reviewId}`);
+
+    const content = input.value.trim();
+
+    if(content.length===0){
+        showToast("댓글을 입력해주세요.");
+        return;
+    }
+
+    const r = await fetch(
+
+        `${API}/reviews/${reviewId}/comments`,
+
+        {
+
+            method:"POST",
+
+            headers:{
+                ...authHeader(),
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                content
+
+            })
+
+        }
+
+    );
+
+    const d = await r.json();
+
+    if(!r.ok){
+
+        showToast(d.message);
+
+        return;
+
+    }
+
+    showToast("댓글 작성 완료!");
+
+    toggleComments(reviewId);
+
+    toggleComments(reviewId);
+
+}
 
   // ── 방문 인증 ──────────────────────────────
   async function openVerify() {
