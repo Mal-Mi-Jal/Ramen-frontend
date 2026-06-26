@@ -452,16 +452,46 @@
   }
 
   async function openDetail(rest) {
-    currentRestaurant = rest;
-    document.getElementById('detail-name').textContent = rest.name;
-    document.getElementById('detail-addr').textContent = rest.address || '';
-    document.getElementById('d-rating').textContent = rest.average_rating?.toFixed(1) || '-';
-    document.getElementById('d-reviews').textContent = rest.review_count ?? '-';
-    document.getElementById('d-revisit').textContent =
-      rest.revisit_rate != null ? Math.round(rest.revisit_rate * 100) + '%' : '-';
-    navigate('detail');
-    loadReviews(rest.id);
+
+  try {
+
+    const r = await fetch(`${API}/restaurants/${rest.id}`);
+
+    const d = await r.json();
+
+    if (!r.ok || !d.success) {
+      showToast("식당 정보를 불러오지 못했습니다.");
+      return;
+    }
+
+    currentRestaurant = d.data;
+
+    document.getElementById("detail-name").textContent =
+      currentRestaurant.name;
+
+    document.getElementById("detail-addr").textContent =
+      currentRestaurant.address || "";
+
+    document.getElementById("d-rating").textContent =
+      currentRestaurant.average_rating.toFixed(1);
+
+    document.getElementById("d-reviews").textContent =
+      currentRestaurant.review_count;
+
+    document.getElementById("d-revisit").textContent =
+      Math.round(currentRestaurant.revisit_rate * 100) + "%";
+
+    navigate("detail");
+
+    loadReviews(currentRestaurant.id);
+
+  } catch (e) {
+
+    console.error(e);
+
+    showToast("식당 정보를 불러오지 못했습니다.");
   }
+}
 
   async function loadReviews(restaurantId) {
     const list = document.getElementById('review-list');
