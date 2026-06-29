@@ -1153,7 +1153,11 @@ async function loadComments(){
     const response =
         await fetch(
 
-            `${API}/reviews/${currentCommentReviewId}/comments?page=1&size=30`
+            `${API}/reviews/${currentCommentReviewId}/comments?page=1&size=30`,
+
+            {
+                headers: authHeader()
+            }
 
         );
 
@@ -1161,7 +1165,7 @@ async function loadComments(){
         await response.json();
 
     const comments =
-        data.data.comments;
+        data.data?.comments || [];
 
     box.innerHTML =
         comments.map(c=>`
