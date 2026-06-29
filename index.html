@@ -664,8 +664,8 @@
               <i class="ti ti-heart"></i> ${rv.like_count || 0}
             </button>
             <button
-              class="comment-btn"
-              onclick="openCommentModal('${rv.id}')">
+            class="comment-btn"
+            onclick="event.stopPropagation(); openCommentModal('${rv.id}')">
               <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
             </button>
           </div>
@@ -1061,12 +1061,20 @@ async function writeComment(reviewId){
 
 }
 
-function closeCommentModal(){
+function closeCommentModal(e){
 
-    document.getElementById("comment-modal").style.display="none";
+    if(
+        e &&
+        e.target !==
+        document.getElementById("comment-modal")
+    ) return;
+
+    document
+        .getElementById("comment-modal")
+        .style.display = "none";
 
 }
-
+  
 async function loadComments(){
 
     const box =
@@ -1162,32 +1170,55 @@ async function submitComment(){
 }
   
 </script>
-<div id="comment-modal" class="modal" style="display:none">
+  
+<!-- COMMENT MODAL -->
+<div class="modal-overlay"
+     id="comment-modal"
+     style="display:none"
+     onclick="closeCommentModal(event)">
 
-  <div class="modal-sheet">
+  <div class="modal-sheet"
+       onclick="event.stopPropagation()">
 
-    <div class="modal-header">
+    <h3>댓글</h3>
 
-      <h3>댓글</h3>
-
-      <button onclick="closeCommentModal()">✕</button>
-
+    <div id="comment-list"
+         style="
+            max-height:320px;
+            overflow-y:auto;
+            margin:20px 0;
+         ">
     </div>
 
-    <div id="comment-list"></div>
-
-    <div class="comment-input">
+    <div style="
+        display:flex;
+        gap:10px;
+    ">
 
       <input
         id="comment-content"
         type="text"
-        placeholder="댓글을 입력하세요">
+        placeholder="댓글을 입력하세요..."
+        style="flex:1;">
 
-      <button onclick="submitComment()">
+      <button
+        class="btn-primary"
+        onclick="submitComment()">
+
         등록
+
       </button>
 
     </div>
+
+    <button
+      class="btn-outline"
+      style="margin-top:15px"
+      onclick="closeCommentModal()">
+
+      닫기
+
+    </button>
 
   </div>
 
