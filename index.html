@@ -693,7 +693,7 @@
 
 }
 
-  async function searchRestaurants(){
+  async function searchRestaurants() {
 
     const keyword =
         document
@@ -701,7 +701,7 @@
             .value
             .trim();
 
-    if(keyword===""){
+    if (keyword === "") {
 
         loadNearbyRestaurants();
 
@@ -709,12 +709,18 @@
 
     }
 
-    try{
+    try {
+
+        // 현재 위치 가져오기
+        const pos = await getPosition();
+
+        const latitude = pos.coords.latitude;
+        const longitude = pos.coords.longitude;
 
         const response =
             await fetch(
 
-                `${API}/restaurants/search?keyword=${encodeURIComponent(keyword)}`
+                `${API}/restaurants/search?keyword=${encodeURIComponent(keyword)}&latitude=${latitude}&longitude=${longitude}`
 
             );
 
@@ -727,7 +733,9 @@
 
         );
 
-    }catch(e){
+    } catch (e) {
+
+        console.error(e);
 
         showToast("검색에 실패했습니다.");
 
