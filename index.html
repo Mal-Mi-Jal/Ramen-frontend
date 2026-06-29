@@ -279,6 +279,42 @@
     padding:10px 15px;
 
 }
+    .search-box{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+}
+
+.search-box input{
+
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:white;
+    font-size:15px;
+
+}
+
+.search-box input::placeholder{
+
+    color:#d9efe8;
+
+}
+
+.search-btn{
+
+    background:#fff;
+    color:#166b55;
+    border:none;
+    border-radius:10px;
+    padding:8px 14px;
+    cursor:pointer;
+    font-weight:700;
+
+}
   </style>
 </head>
 <body>
@@ -317,10 +353,25 @@
     <div class="home-hero">
       <h2>🍜 주변 라멘집 탐색</h2>
       <p>GPS 기반 · 인증된 리뷰만 모아요</p>
-      <div class="search-box" onclick="showToast('검색 기능 준비 중')">
-        <i class="ti ti-search"></i>
-        <span>라멘집 이름이나 지역 검색</span>
-      </div>
+      <div class="search-box">
+
+  <i class="ti ti-search"></i>
+
+  <input
+      id="search-input"
+      type="text"
+      placeholder="라멘집 이름이나 지역 검색"
+      onkeydown="if(event.key==='Enter') searchRestaurants()">
+
+  <button
+      class="search-btn"
+      onclick="searchRestaurants()">
+
+      검색
+
+  </button>
+
+</div>
     </div>
     <div class="section-label">내 주변 라멘집</div>
     <div id="restaurant-list"><div class="loading">위치 정보를 불러오는 중...</div></div>
@@ -564,25 +615,125 @@
         list.innerHTML = '<div class="empty">주변에 등록된 라멘집이 없어요 🍜</div>';
         return;
       }
-      list.innerHTML = restaurants.map(rest => `
-        <div class="rest-card" onclick="openDetail(${JSON.stringify(rest).replace(/"/g, '&quot;')})">
-          <div class="rest-icon">🍜</div>
-          <div class="rest-info">
-            <div class="rest-name">${rest.name}</div>
-            <div class="rest-addr">${rest.address || ''}</div>
-            <div class="rest-meta">
-              <span class="rest-rating"><i class="ti ti-star-filled" style="font-size:12px"></i> ${rest.average_rating?.toFixed(1) || '-'}</span>
-              <span class="rest-dist">리뷰 ${rest.review_count || 0}개</span>
-              ${rest.distance_meters ? `<span class="rest-dist">${rest.distance_meters}m</span>` : ''}
-            </div>
-          </div>
-          <i class="ti ti-chevron-right" style="color:var(--text3);font-size:18px"></i>
-        </div>
-      `).join('');
+      renderRestaurantList(restaurants);
     } catch (e) {
       list.innerHTML = '<div class="empty">위치 정보를 가져올 수 없어요.<br>브라우저 위치 권한을 허용해주세요.</div>';
     }
   }
+
+  function renderRestaurantList(restaurants){
+
+    const list =
+        document.getElementById("restaurant-list");
+
+    if(restaurants.length===0){
+
+        list.innerHTML =
+            '<div class="empty">검색 결과가 없습니다.</div>';
+
+        return;
+
+    }
+
+    list.innerHTML =
+        restaurants.map(rest=>`
+
+        <div class="rest-card"
+            onclick="openDetail(${JSON.stringify(rest).replace(/"/g,'&quot;')})">
+
+            <div class="rest-icon">
+                🍜
+            </div>
+
+            <div class="rest-info">
+
+                <div class="rest-name">
+
+                    ${rest.name}
+
+                </div>
+
+                <div class="rest-addr">
+
+                    ${rest.address || ''}
+
+                </div>
+
+                <div class="rest-meta">
+
+                    <span class="rest-rating">
+
+                        <i class="ti ti-star-filled"
+                           style="font-size:12px"></i>
+
+                        ${rest.average_rating?.toFixed(1) || '-'}
+
+                    </span>
+
+                    <span class="rest-dist">
+
+                        리뷰 ${rest.review_count || 0}개
+
+                    </span>
+
+                    ${rest.distance_meters
+                        ? `<span class="rest-dist">${rest.distance_meters}m</span>`
+                        : ""}
+
+                </div>
+
+            </div>
+
+            <i class="ti ti-chevron-right"
+               style="color:var(--text3);font-size:18px"></i>
+
+        </div>
+
+        `).join("");
+
+}
+
+  async function searchRestaurants(){
+
+    const keyword =
+        document
+            .getElementById("search-input")
+            .value
+            .trim();
+
+    if(keyword===""){
+
+        loadNearbyRestaurants();
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+
+                `${API}/restaurants/search?keyword=${encodeURIComponent(keyword)}`
+
+            );
+
+        const data =
+            await response.json();
+
+        renderRestaurantList(
+
+            data.data?.restaurants || []
+
+        );
+
+    }catch(e){
+
+        showToast("검색에 실패했습니다.");
+
+    }
+
+}
 
   function getPosition() {
     return new Promise((resolve, reject) => {
