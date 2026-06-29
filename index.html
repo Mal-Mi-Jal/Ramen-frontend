@@ -676,9 +676,13 @@
 
                     </span>
 
-                    ${rest.distance_meters
-                        ? `<span class="rest-dist">${rest.distance_meters}m</span>`
-                        : ""}
+                    ${rest.distance_meters != null
+                          ? `<span class="rest-dist">${
+                             rest.distance_meters >= 1000
+                                 ? (rest.distance_meters / 1000).toFixed(1) + "km"
+                                : rest.distance_meters + "m"
+                          }</span>`
+                         : ""}
 
                 </div>
 
