@@ -447,6 +447,7 @@
   let timerInterval = null;
   let timerSec = 1200;
   let currentCommentReviewId = null;
+  let totalTimerSeconds = 1200;
 
   // ── 화면 전환 ──────────────────────────────
   function navigate(name) {
@@ -945,16 +946,25 @@ async function writeComment(reviewId){
 }
 
   function updateTimerUI() {
-    const m = Math.floor(timerSec / 60);
-    const s = timerSec % 60;
-    document.getElementById('timer-text').textContent =
-      `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    const pct = 1 - (timerSec / 1200);
-    document.getElementById('timer-arc').setAttribute('stroke-dashoffset', 238.76 * (1 - pct));
-  }
+
+  const m = Math.floor(timerSec / 60);
+  const s = timerSec % 60;
+
+  document.getElementById("timer-text").textContent =
+      `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+
+  const pct = timerSec / totalTimerSeconds;
+
+  document.getElementById("timer-arc")
+      .setAttribute(
+          "stroke-dashoffset",
+          238.76 * (1 - pct)
+      );
+}
 
   function startVerificationTimer(seconds) {
 
+  totalTimerSeconds = seconds;
   timerSec = seconds;
 
   updateTimerUI();
