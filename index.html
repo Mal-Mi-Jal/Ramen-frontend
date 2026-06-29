@@ -200,6 +200,85 @@
     padding:8px 12px;
 
 }
+    .modal-sheet{
+
+    position:fixed;
+
+    bottom:0;
+
+    left:0;
+
+    right:0;
+
+    background:white;
+
+    border-radius:20px 20px 0 0;
+
+    padding:20px;
+
+    max-height:70vh;
+
+    overflow:auto;
+
+}
+
+.modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+
+}
+
+.comment-item{
+
+    padding:12px 0;
+
+    border-bottom:1px solid #eee;
+
+}
+
+.comment-user{
+
+    font-weight:bold;
+
+}
+
+.comment-date{
+
+    font-size:12px;
+
+    color:#888;
+
+}
+
+.comment-input{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:20px;
+
+}
+
+.comment-input input{
+
+    flex:1;
+
+    padding:10px;
+
+}
+
+.comment-input button{
+
+    padding:10px 15px;
+
+}
   </style>
 </head>
 <body>
@@ -367,6 +446,7 @@
   let selectedRevisit = null;
   let timerInterval = null;
   let timerSec = 1200;
+  let currentCommentReviewId = null;
 
   // ── 화면 전환 ──────────────────────────────
   function navigate(name) {
@@ -583,8 +663,9 @@
             <button class="like-btn" id="like-${i}" onclick="toggleLike('${rv.id}', ${i}, ${rv.like_count})">
               <i class="ti ti-heart"></i> ${rv.like_count || 0}
             </button>
-            <button class="comment-btn">
-            onclick="toggleComments('${rv.id}')">
+            <button
+              class="comment-btn"
+              onclick="openCommentModal('${rv.id}')">
               <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
             </button>
           </div>
@@ -968,6 +1049,148 @@ async function writeComment(reviewId){
     el.textContent = msg;
     el.style.display = 'block';
   }
+
+  // 댓글
+  async function openCommentModal(reviewId){
+
+    currentCommentReviewId = reviewId;
+
+    document.getElementById("comment-modal").style.display="block";
+
+    loadComments();
+
+}
+
+function closeCommentModal(){
+
+    document.getElementById("comment-modal").style.display="none";
+
+}
+
+async function loadComments(){
+
+    const box =
+        document.getElementById("comment-list");
+
+    box.innerHTML="불러오는 중...";
+
+    const response =
+        await fetch(
+
+            `${API}/reviews/${currentCommentReviewId}/comments?page=1&size=30`
+
+        );
+
+    const data =
+        await response.json();
+
+    const comments =
+        data.data.comments;
+
+    box.innerHTML =
+        comments.map(c=>`
+
+        <div class="comment-item">
+
+            <div class="comment-user">
+
+                ${c.user.nickname}
+
+            </div>
+
+            <div>
+
+                ${c.content}
+
+            </div>
+
+            <div class="comment-date">
+
+                ${formatDate(c.created_at)}
+
+            </div>
+
+        </div>
+
+        `).join("");
+
+}
+  
+async function submitComment(){
+
+    const input =
+        document.getElementById("comment-content");
+
+    if(!input.value.trim()){
+
+        showToast("댓글을 입력하세요.");
+
+        return;
+
+    }
+
+    await fetch(
+
+        `${API}/reviews/${currentCommentReviewId}/comments`,
+
+        {
+
+            method:"POST",
+
+            headers:{
+
+                ...authHeader(),
+
+                "Content-Type":"application/json"
+
+            },
+
+            body:JSON.stringify({
+
+                content:input.value
+
+            })
+
+        }
+
+    );
+
+    input.value="";
+
+    loadComments();
+
+}
+  
 </script>
+<div id="comment-modal" class="modal" style="display:none">
+
+  <div class="modal-sheet">
+
+    <div class="modal-header">
+
+      <h3>댓글</h3>
+
+      <button onclick="closeCommentModal()">✕</button>
+
+    </div>
+
+    <div id="comment-list"></div>
+
+    <div class="comment-input">
+
+      <input
+        id="comment-content"
+        type="text"
+        placeholder="댓글을 입력하세요">
+
+      <button onclick="submitComment()">
+        등록
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 </body>
 </html>
