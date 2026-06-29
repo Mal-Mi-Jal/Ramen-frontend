@@ -822,100 +822,126 @@ async function writeComment(reviewId){
   async function openVerify() {
 
   if (!token) {
-    showToast('로그인이 필요해요');
+    showToast("로그인이 필요해요");
     return;
   }
 
   try {
 
+    const currentResponse =
+      await fetch(
+        `${API}/verifications/current`,
+        {
+          headers: authHeader()
+        }
+      );
+
+    const currentData =
+      await currentResponse.json();
+
+    // --------------------------
+    // 이미 진행중인 인증 있음
+    // --------------------------
+
+    if (currentData.success && currentData.data) {
+
+      currentVerificationId =
+        currentData.data.verification_id;
+
+      document.getElementById("verify-modal").style.display = "flex";
+
+      document.getElementById("mstep2").classList.remove("done");
+
+      document.getElementById("mstep2").innerHTML =
+        '<i class="ti ti-clock"></i> 체류 대기 중...';
+
+      document.getElementById("verify-cta").style.display = "none";
+
+      startVerificationTimer(
+        currentData.data.remaining_seconds
+      );
+
+      return;
+    }
+
+    // --------------------------
+    // 진행중인 인증 없음
+    // --------------------------
+
     const pos = await getPosition();
 
-    const r = await fetch(API + '/verifications/enter', {
-      method: 'POST',
-      headers: {
-        ...authHeader(),
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        restaurant_id: currentRestaurant.id,
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude
-      })
-    });
+    const enterResponse =
+      await fetch(
 
-    const d = await r.json();
+        `${API}/verifications/enter`,
 
-    // 이미 진행중인 인증
-    if (d.code === 'ALREADY_PENDING') {
+        {
 
-      showToast('진행 중인 방문 인증이 있습니다.');
+          method: "POST",
 
-      document.getElementById('verify-modal').style.display = 'flex';
+          headers: {
 
-      return;
-    }
+            ...authHeader(),
 
-    // 실패
-    if (!r.ok || !d.success) {
-      showToast(
-        d.message ||
-        '방문 인증을 시작할 수 없습니다.'
+            "Content-Type": "application/json"
+
+          },
+
+          body: JSON.stringify({
+
+            restaurant_id: currentRestaurant.id,
+
+            latitude: pos.coords.latitude,
+
+            longitude: pos.coords.longitude
+
+          })
+
+        }
+
       );
+
+    const enterData =
+      await enterResponse.json();
+
+    if (!enterResponse.ok || !enterData.success) {
+
+      showToast(
+        enterData.message ??
+        "방문 인증을 시작할 수 없습니다."
+      );
+
       return;
     }
 
-    // 인증 시작 성공
     currentVerificationId =
-      d.data?.verification_id;
+      enterData.data.verification_id;
 
-    document.getElementById('verify-modal').style.display = 'flex';
+    document.getElementById("verify-modal").style.display = "flex";
 
-    document.getElementById('mstep2')
-      .classList.remove('done');
+    document.getElementById("mstep2").classList.remove("done");
 
-    document.getElementById('mstep2').innerHTML =
-      '<i class="ti ti-clock"></i> 20분 체류 대기 중...';
+    document.getElementById("mstep2").innerHTML =
+      '<i class="ti ti-clock"></i> 체류 대기 중...';
 
-    document.getElementById('verify-cta').style.display =
-      'none';
+    document.getElementById("verify-cta").style.display = "none";
 
-    timerSec = 1200;
-
-    updateTimerUI();
-
-    clearInterval(timerInterval);
-
-    timerInterval = setInterval(() => {
-
-      timerSec = Math.max(0, timerSec - 1);
-
-      updateTimerUI();
-
-      if (timerSec === 0) {
-
-        clearInterval(timerInterval);
-
-        document.getElementById('mstep2')
-          .classList.add('done');
-
-        document.getElementById('mstep2').innerHTML =
-          '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
-
-        document.getElementById('verify-cta').style.display =
-          'block';
-      }
-
-    }, 50);
+    startVerificationTimer(
+      enterData.data.required_stay_seconds
+    );
 
   }
+
   catch (e) {
 
     console.error(e);
 
     showToast(
-      '위치 정보를 가져올 수 없어요. 브라우저 위치 권한을 확인해주세요.'
+      "위치 정보를 가져올 수 없습니다."
     );
+
   }
+
 }
 
   function updateTimerUI() {
@@ -926,6 +952,36 @@ async function writeComment(reviewId){
     const pct = 1 - (timerSec / 1200);
     document.getElementById('timer-arc').setAttribute('stroke-dashoffset', 238.76 * (1 - pct));
   }
+
+  function startVerificationTimer(seconds) {
+
+  timerSec = seconds;
+
+  updateTimerUI();
+
+  clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+
+    timerSec = Math.max(0, timerSec - 1);
+
+    updateTimerUI();
+
+    if (timerSec === 0) {
+
+      clearInterval(timerInterval);
+
+      document.getElementById("mstep2").classList.add("done");
+
+      document.getElementById("mstep2").innerHTML =
+        '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
+
+      document.getElementById("verify-cta").style.display = "block";
+
+    }
+
+  }, 30); // 테스트용
+}
 
   async function completeVerify() {
     // 실제: /verifications/{id}/verify 호출
@@ -951,6 +1007,8 @@ async function writeComment(reviewId){
   ) {
     return;
   }
+
+  clearInterval(timerInterval);
 
   document.getElementById('verify-modal').style.display =
     'none';
