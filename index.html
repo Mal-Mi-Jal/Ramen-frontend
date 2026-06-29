@@ -141,6 +141,65 @@
 
     .empty{padding:40px 20px;text-align:center;color:var(--text3);font-size:14px}
     .loading{padding:40px 20px;text-align:center;color:var(--text3);font-size:14px}
+    .comments-box{
+
+    margin-top:12px;
+
+    padding-top:10px;
+
+    border-top:1px solid #eee;
+
+}
+
+.comment-item{
+
+    margin-bottom:12px;
+
+}
+
+.comment-user{
+
+    font-weight:600;
+
+}
+
+.comment-content{
+
+    margin:6px 0;
+
+}
+
+.comment-date{
+
+    color:#999;
+
+    font-size:12px;
+
+}
+
+.comment-write{
+
+    display:flex;
+
+    gap:8px;
+
+    margin-top:10px;
+
+}
+
+.comment-write input{
+
+    flex:1;
+
+    padding:8px;
+
+}
+
+.comment-write button{
+
+    padding:8px 12px;
+
+}
   </style>
 </head>
 <body>
@@ -298,7 +357,7 @@
 
 <script>
   // ✅ 백엔드 주소 — Render 배포 주소
-  const API = 'https://ramenlog-backend.onrender.com';
+  const API = 'https://ramen-production.up.railway.app';
 
   let token = null;
   let currentUser = null;
@@ -452,16 +511,46 @@
   }
 
   async function openDetail(rest) {
-    currentRestaurant = rest;
-    document.getElementById('detail-name').textContent = rest.name;
-    document.getElementById('detail-addr').textContent = rest.address || '';
-    document.getElementById('d-rating').textContent = rest.average_rating?.toFixed(1) || '-';
-    document.getElementById('d-reviews').textContent = rest.review_count ?? '-';
-    document.getElementById('d-revisit').textContent =
-      rest.revisit_rate != null ? Math.round(rest.revisit_rate * 100) + '%' : '-';
-    navigate('detail');
-    loadReviews(rest.id);
+
+  try {
+
+    const r = await fetch(`${API}/restaurants/${rest.id}`);
+
+    const d = await r.json();
+
+    if (!r.ok || !d.success) {
+      showToast("식당 정보를 불러오지 못했습니다.");
+      return;
+    }
+
+    currentRestaurant = d.data;
+
+    document.getElementById("detail-name").textContent =
+      currentRestaurant.name;
+
+    document.getElementById("detail-addr").textContent =
+      currentRestaurant.address || "";
+
+    document.getElementById("d-rating").textContent =
+      currentRestaurant.average_rating.toFixed(1);
+
+    document.getElementById("d-reviews").textContent =
+      currentRestaurant.review_count;
+
+    document.getElementById("d-revisit").textContent =
+    Math.round(currentRestaurant.revisit_rate) + "%";
+
+    navigate("detail");
+
+    loadReviews(currentRestaurant.id);
+
+  } catch (e) {
+
+    console.error(e);
+
+    showToast("식당 정보를 불러오지 못했습니다.");
   }
+}
 
   async function loadReviews(restaurantId) {
     const list = document.getElementById('review-list');
@@ -495,9 +584,11 @@
               <i class="ti ti-heart"></i> ${rv.like_count || 0}
             </button>
             <button class="comment-btn">
+            onclick="toggleComments('${rv.id}')">
               <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
             </button>
           </div>
+          <div id="comments-${rv.id}" class="comments-box" style="display:none"></div>
         </div>
       `).join('');
     } catch (e) {
@@ -524,46 +615,227 @@
     }
   }
 
+  async function toggleComments(reviewId){
+
+    const box = document.getElementById(`comments-${reviewId}`);
+
+    if(box.style.display === "block"){
+        box.style.display = "none";
+        return;
+    }
+
+    box.style.display = "block";
+    box.innerHTML = "댓글 불러오는 중...";
+
+    try{
+
+        const r = await fetch(
+            `${API}/reviews/${reviewId}/comments?page=1&size=30`
+        );
+
+        const d = await r.json();
+
+        const comments = d.data.comments;
+
+        box.innerHTML = comments.map(c=>`
+
+            <div class="comment-item">
+
+                <div class="comment-user">
+                    <b>${c.user.nickname}</b>
+                </div>
+
+                <div class="comment-content">
+                    ${c.content}
+                </div>
+
+                <div class="comment-date">
+                    ${formatDate(c.created_at)}
+                </div>
+
+            </div>
+
+        `).join("");
+
+        box.innerHTML += `
+
+            <div class="comment-write">
+
+                <input
+                    id="comment-input-${reviewId}"
+                    placeholder="댓글을 입력하세요">
+
+                <button
+                    onclick="writeComment('${reviewId}')">
+
+                    등록
+
+                </button>
+
+            </div>
+
+        `;
+
+    }catch(e){
+
+        showToast("댓글을 불러오지 못했습니다.");
+
+    }
+
+}
+
+async function writeComment(reviewId){
+
+    const input =
+        document.getElementById(`comment-input-${reviewId}`);
+
+    const content = input.value.trim();
+
+    if(content.length===0){
+        showToast("댓글을 입력해주세요.");
+        return;
+    }
+
+    const r = await fetch(
+
+        `${API}/reviews/${reviewId}/comments`,
+
+        {
+
+            method:"POST",
+
+            headers:{
+                ...authHeader(),
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                content
+
+            })
+
+        }
+
+    );
+
+    const d = await r.json();
+
+    if(!r.ok){
+
+        showToast(d.message);
+
+        return;
+
+    }
+
+    showToast("댓글 작성 완료!");
+
+    toggleComments(reviewId);
+
+    toggleComments(reviewId);
+
+}
+
   // ── 방문 인증 ──────────────────────────────
   async function openVerify() {
-    if (!token) { showToast('로그인이 필요해요'); return; }
-    // 실제: GPS로 진입 감지 후 /verifications/enter 호출
-    try {
-      const pos = await getPosition();
-      const r = await fetch(API + '/verifications/enter', {
-        method: 'POST',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          restaurant_id: currentRestaurant.id,
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
-        })
-      });
-      const d = await r.json();
-      if (r.ok || r.status === 201) {
-        currentVerificationId = d.data?.verification_id;
-      }
-    } catch (e) {}
+
+  if (!token) {
+    showToast('로그인이 필요해요');
+    return;
+  }
+
+  try {
+
+    const pos = await getPosition();
+
+    const r = await fetch(API + '/verifications/enter', {
+      method: 'POST',
+      headers: {
+        ...authHeader(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        restaurant_id: currentRestaurant.id,
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude
+      })
+    });
+
+    const d = await r.json();
+
+    // 이미 진행중인 인증
+    if (d.code === 'ALREADY_PENDING') {
+
+      showToast('진행 중인 방문 인증이 있습니다.');
+
+      document.getElementById('verify-modal').style.display = 'flex';
+
+      return;
+    }
+
+    // 실패
+    if (!r.ok || !d.success) {
+      showToast(
+        d.message ||
+        '방문 인증을 시작할 수 없습니다.'
+      );
+      return;
+    }
+
+    // 인증 시작 성공
+    currentVerificationId =
+      d.data?.verification_id;
 
     document.getElementById('verify-modal').style.display = 'flex';
-    document.getElementById('mstep2').classList.remove('done');
-    document.getElementById('mstep2').innerHTML = '<i class="ti ti-clock"></i> 20분 체류 대기 중...';
-    document.getElementById('verify-cta').style.display = 'none';
+
+    document.getElementById('mstep2')
+      .classList.remove('done');
+
+    document.getElementById('mstep2').innerHTML =
+      '<i class="ti ti-clock"></i> 20분 체류 대기 중...';
+
+    document.getElementById('verify-cta').style.display =
+      'none';
+
     timerSec = 1200;
+
     updateTimerUI();
+
     clearInterval(timerInterval);
-    // 데모용: 실제 배포에서는 interval을 1000ms로 변경
+
     timerInterval = setInterval(() => {
+
       timerSec = Math.max(0, timerSec - 1);
+
       updateTimerUI();
+
       if (timerSec === 0) {
+
         clearInterval(timerInterval);
-        document.getElementById('mstep2').classList.add('done');
-        document.getElementById('mstep2').innerHTML = '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
-        document.getElementById('verify-cta').style.display = 'block';
+
+        document.getElementById('mstep2')
+          .classList.add('done');
+
+        document.getElementById('mstep2').innerHTML =
+          '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
+
+        document.getElementById('verify-cta').style.display =
+          'block';
       }
-    }, 50); // 👈 실제 배포 시 50 → 1000 으로 변경
+
+    }, 50);
+
   }
+  catch (e) {
+
+    console.error(e);
+
+    showToast(
+      '위치 정보를 가져올 수 없어요. 브라우저 위치 권한을 확인해주세요.'
+    );
+  }
+}
 
   function updateTimerUI() {
     const m = Math.floor(timerSec / 60);
@@ -586,16 +858,22 @@
         });
       } catch (e) {}
     }
-    clearInterval(timerInterval);
     closeVerify();
     goWrite();
   }
 
   function closeVerify(e) {
-    if (e && e.target !== document.getElementById('verify-modal')) return;
-    clearInterval(timerInterval);
-    document.getElementById('verify-modal').style.display = 'none';
+
+  if (
+    e &&
+    e.target !== document.getElementById('verify-modal')
+  ) {
+    return;
   }
+
+  document.getElementById('verify-modal').style.display =
+    'none';
+}
 
   // ── 리뷰 작성 ─────────────────────────────
   function goWrite() {
@@ -691,39 +969,5 @@
     el.style.display = 'block';
   }
 </script>
-
-<div id="comment-modal" class="modal" style="display:none">
-<div class="modal-content">
-<h3>댓글</h3>
-<div id="comment-list"></div>
-<div style="display:flex;gap:8px">
-<input id="comment-input" style="flex:1" placeholder="댓글을 입력하세요">
-<button onclick="submitComment()">등록</button>
-</div>
-<button onclick="closeCommentModal()">닫기</button>
-</div></div>
-
-<script>
-let currentCommentReviewId=null;
-function openCommentModal(id){currentCommentReviewId=id;document.getElementById('comment-modal').style.display='flex';loadComments(id);}
-function closeCommentModal(){document.getElementById('comment-modal').style.display='none';}
-async function loadComments(id){
- const box=document.getElementById('comment-list');
- box.innerHTML='불러오는 중...';
- const r=await fetch(`${API}/reviews/${id}/comments?page=1&size=30`);
- const d=await r.json();
- box.innerHTML=(d.data?.comments||[]).map(c=>`<div><b>${c.user.nickname}</b><br>${c.content}</div><hr>`).join('');
-}
-async function submitComment(){
- const content=document.getElementById('comment-input').value.trim();
- if(!content)return;
- await fetch(`${API}/reviews/${currentCommentReviewId}/comments`,{
- method:'POST',
- headers:{...authHeader(),'Content-Type':'application/json'},
- body:JSON.stringify({content})
- });
- document.getElementById('comment-input').value='';
- loadComments(currentCommentReviewId);
-}
-</script></body>
+</body>
 </html>
