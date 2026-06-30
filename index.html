@@ -323,6 +323,14 @@
 .kakao-link-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:40px;background:#FEE500;color:#3C1E1E;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;text-decoration:none}
     .load-more-btn{display:block;width:calc(100% - 32px);margin:12px 16px;height:42px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:14px;font-weight:500;cursor:pointer}
 .load-more-btn:hover{background:var(--bg3)}
+    .sub-page{display:flex;flex-direction:column;height:100%}
+.visit-item{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.visit-item:hover{background:var(--bg2)}
+.visit-info{flex:1;min-width:0}
+.visit-name{font-size:15px;font-weight:500;color:var(--text)}
+.visit-addr{font-size:13px;color:var(--text2);margin-top:2px}
+.visit-meta{font-size:12px;color:var(--text3);margin-top:5px}
+.edit-form{padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
   </style>
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d50c632eaee7b0c4c915bb23cd498a84&autoload=false"></script>
 </head>
@@ -466,11 +474,42 @@
       <div class="stat-box"><div class="stat-val">-</div><div class="stat-lbl">받은 추천</div></div>
     </div>
     <div style="height:8px;background:var(--bg3);flex-shrink:0"></div>
-    <div class="menu-item"><i class="ti ti-history"></i><span>방문 기록</span><i class="ti ti-chevron-right arr"></i></div>
-    <div class="menu-item"><i class="ti ti-star"></i><span>내 리뷰</span><i class="ti ti-chevron-right arr"></i></div>
-    <div class="menu-item"><i class="ti ti-user-edit"></i><span>프로필 수정</span><i class="ti ti-chevron-right arr"></i></div>
+    <div class="menu-item" onclick="navigate('visits')"><i class="ti ti-history"></i><span>방문 기록</span><i class="ti ti-chevron-right arr"></i></div>
+    <div class="menu-item" onclick="navigate('myreviews')"><i class="ti ti-star"></i><span>내 리뷰</span><i class="ti ti-chevron-right arr"></i></div>
+    <div class="menu-item" onclick="goEditProfile()"><i class="ti ti-user-edit"></i><span>프로필 수정</span><i class="ti ti-chevron-right arr"></i></div>
     <button class="logout-btn" onclick="doLogout()">로그아웃</button>
   </div>
+
+  <!-- VISIT HISTORY -->
+<div class="screen" id="screen-visits">
+  <div class="page-header">
+    <button class="back-btn" style="color:var(--text2)" onclick="navigate('profile')"><i class="ti ti-arrow-left"></i></button>
+    <h1>방문 기록</h1>
+  </div>
+  <div id="visit-list" style="flex:1;overflow-y:auto"><div class="loading">불러오는 중...</div></div>
+</div>
+
+<!-- MY REVIEWS -->
+<div class="screen" id="screen-myreviews">
+  <div class="page-header">
+    <button class="back-btn" style="color:var(--text2)" onclick="navigate('profile')"><i class="ti ti-arrow-left"></i></button>
+    <h1>내 리뷰</h1>
+  </div>
+  <div id="my-review-list" style="flex:1;overflow-y:auto"><div class="loading">불러오는 중...</div></div>
+</div>
+
+<!-- EDIT PROFILE -->
+<div class="screen" id="screen-editprofile">
+  <div class="page-header">
+    <button class="back-btn" style="color:var(--text2)" onclick="navigate('profile')"><i class="ti ti-x"></i></button>
+    <h1>프로필 수정</h1>
+  </div>
+  <div class="edit-form">
+    <div class="field"><label>닉네임</label><input type="text" id="edit-nickname" placeholder="닉네임 입력"></div>
+    <p class="err-msg" id="edit-err"></p>
+    <button class="submit-btn" id="edit-submit-btn" onclick="submitProfileEdit()">저장하기</button>
+  </div>
+</div>
 
   <!-- VERIFY MODAL -->
   <div class="modal-overlay" id="verify-modal" style="display:none" onclick="closeVerify(event)">
@@ -524,16 +563,20 @@
 
   // ── 화면 전환 ──────────────────────────────
   function navigate(name) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-' + name).classList.add('active');
-    const nav = document.getElementById('bottom-nav');
-    nav.style.display = (name === 'auth' || name === 'write') ? 'none' : 'flex';
-    ['home', 'profile'].forEach(n => {
-      document.getElementById('nav-' + n)?.classList.toggle('active', n === name);
-    });
-    if (name === 'home') loadNearbyRestaurants();
-    if (name === 'profile') loadProfile();
-  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const nav = document.getElementById('bottom-nav');
+  // 💡 새 화면들도 nav 바를 숨기게 추가
+  const hideNavScreens = ['auth', 'write', 'visits', 'myreviews', 'editprofile'];
+  nav.style.display = hideNavScreens.includes(name) ? 'none' : 'flex';
+  ['home', 'profile'].forEach(n => {
+    document.getElementById('nav-' + n)?.classList.toggle('active', n === name);
+  });
+  if (name === 'home') loadNearbyRestaurants();
+  if (name === 'profile') loadProfile();
+  if (name === 'visits') loadVisitHistory();
+  if (name === 'myreviews') loadMyReviews();
+}
 
   // ── 인증 ──────────────────────────────────
   function switchTab(tab) {
@@ -1323,6 +1366,98 @@ async function writeComment(reviewId){
         document.getElementById('prof-avatar').textContent = d.data.nickname[0];
       }
     } catch (e) {}
+  }
+
+   // ── 방문 기록 ─────────────────────────────
+  async function loadVisitHistory() {
+    const list = document.getElementById('visit-list');
+    list.innerHTML = '<div class="loading">불러오는 중...</div>';
+    try {
+      const r = await fetch(API + '/users/me/visit-history', { headers: authHeader() });
+      const d = await r.json();
+      const visits = d.data?.visit_history || [];
+      if (visits.length === 0) {
+        list.innerHTML = '<div class="empty">아직 방문 인증한 라멘집이 없어요 🍜</div>';
+        return;
+      }
+      list.innerHTML = visits.map(v => `
+        <div class="visit-item" onclick="openDetail(${JSON.stringify(v.restaurant).replace(/"/g, '&quot;')})">
+          <div class="rest-icon">🍜</div>
+          <div class="visit-info">
+            <div class="visit-name">${v.restaurant?.name || ''}</div>
+            <div class="visit-addr">${v.restaurant?.address || ''}</div>
+            <div class="visit-meta">방문 ${v.visit_count}회 · 최근 방문 ${formatDate(v.last_visited_at)}</div>
+          </div>
+          <i class="ti ti-chevron-right" style="color:var(--text3);font-size:18px"></i>
+        </div>
+      `).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="empty">방문 기록을 불러올 수 없어요.</div>';
+    }
+  }
+
+  // ── 내 리뷰 ───────────────────────────────
+  async function loadMyReviews() {
+    const list = document.getElementById('my-review-list');
+    list.innerHTML = '<div class="loading">불러오는 중...</div>';
+    try {
+      // 💡 GET /users/me/reviews 엔드포인트가 백엔드에 있어야 동작해요
+      const r = await fetch(API + '/users/me/reviews', { headers: authHeader() });
+      const d = await r.json();
+      const reviews = d.data?.reviews || [];
+      if (reviews.length === 0) {
+        list.innerHTML = '<div class="empty">아직 작성한 리뷰가 없어요 🍜</div>';
+        return;
+      }
+      list.innerHTML = reviews.map(rv => `
+        <div class="review-item">
+          <div class="reviewer">
+            <div class="avatar">${rv.restaurant?.name?.[0] || '?'}</div>
+            <div>
+              <div class="reviewer-name">${rv.restaurant?.name || ''}</div>
+              <div class="reviewer-date">${formatDate(rv.created_at)}</div>
+            </div>
+          </div>
+          <div class="stars">${'⭐'.repeat(rv.rating)}</div>
+          <div class="review-text">${rv.content || ''}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="empty">내 리뷰를 불러올 수 없어요.<br>(백엔드 API 준비 중일 수 있어요)</div>';
+    }
+  }
+
+  // ── 프로필 수정 ───────────────────────────
+  function goEditProfile() {
+    document.getElementById('edit-nickname').value = currentUser?.nickname || '';
+    document.getElementById('edit-err').style.display = 'none';
+    navigate('editprofile');
+  }
+
+  async function submitProfileEdit() {
+    const nickname = document.getElementById('edit-nickname').value.trim();
+    if (!nickname) { showErr('edit-err', '닉네임을 입력해주세요.'); return; }
+    const btn = document.getElementById('edit-submit-btn');
+    btn.disabled = true; btn.textContent = '저장 중...';
+    try {
+      const r = await fetch(API + '/users/me', {
+        method: 'PATCH',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname })
+      });
+      const d = await r.json();
+      if (r.ok) {
+        currentUser.nickname = nickname;
+        showToast('프로필이 수정됐어요!');
+        navigate('profile');
+      } else {
+        showErr('edit-err', d.message || '수정에 실패했어요.');
+      }
+    } catch (e) {
+      showErr('edit-err', '서버에 연결할 수 없어요.');
+    } finally {
+      btn.disabled = false; btn.textContent = '저장하기';
+    }
   }
 
   // ── 유틸 ──────────────────────────────────
