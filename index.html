@@ -837,6 +837,7 @@
           map.relayout();
           map.setCenter(markerPosition); // 💡 relayout 후 중심을 다시 마커 위치로 고정
         }, 0);
+      });
 
       document.getElementById("detail-kakao-link").href =
         currentRestaurant.kakao_place_id
