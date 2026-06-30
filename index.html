@@ -322,7 +322,7 @@
 .detail-map{width:100%;height:160px;border:none;border-radius:var(--radius-sm);margin-top:8px}
 .kakao-link-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:40px;background:#FEE500;color:#3C1E1E;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;text-decoration:none}
   </style>
-  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d50c632eaee7b0c4c915bb23cd498a84"></script>
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d50c632eaee7b0c4c915bb23cd498a84Y&autoload=false"></script>
 </head>
 <body>
 <div class="phone" id="app">
@@ -814,15 +814,17 @@
     const lat = currentRestaurant.latitude;
     const lng = currentRestaurant.longitude;
     if (lat && lng) {
-      const mapContainer = document.getElementById("detail-map");
-      const mapOption = {
-        center: new kakao.maps.LatLng(lat, lng),
-        level: 4
-      };
-      const map = new kakao.maps.Map(mapContainer, mapOption);
-      const markerPosition = new kakao.maps.LatLng(lat, lng);
-      const marker = new kakao.maps.Marker({ position: markerPosition });
-      marker.setMap(map);
+      kakao.maps.load(function() {
+        const mapContainer = document.getElementById("detail-map");
+        const mapOption = {
+          center: new kakao.maps.LatLng(lat, lng),
+          level: 4
+        };
+        const map = new kakao.maps.Map(mapContainer, mapOption);
+        const markerPosition = new kakao.maps.LatLng(lat, lng);
+        const marker = new kakao.maps.Marker({ position: markerPosition });
+        marker.setMap(map);
+      });
 
       document.getElementById("detail-kakao-link").href =
         currentRestaurant.kakao_place_id
