@@ -833,8 +833,10 @@
         marker.setMap(map);
 
         // 💡 지도가 보이는 div 크기가 늦게 잡히는 경우 강제 relayout
-        setTimeout(() => map.relayout(), 0);
-      });
+        setTimeout(() => {
+          map.relayout();
+          map.setCenter(markerPosition); // 💡 relayout 후 중심을 다시 마커 위치로 고정
+        }, 0);
 
       document.getElementById("detail-kakao-link").href =
         currentRestaurant.kakao_place_id
