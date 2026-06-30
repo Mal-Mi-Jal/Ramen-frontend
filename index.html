@@ -814,6 +814,7 @@
     const lat = currentRestaurant.latitude;
     const lng = currentRestaurant.longitude;
     if (lat && lng) {
+      document.getElementById("detail-map").innerHTML = "";
       kakao.maps.load(function() {
         const mapContainer = document.getElementById("detail-map");
         const mapOption = {
