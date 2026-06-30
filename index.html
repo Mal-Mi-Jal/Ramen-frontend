@@ -1420,6 +1420,14 @@ async function writeComment(reviewId){
           </div>
           <div class="stars">${'⭐'.repeat(rv.rating)}</div>
           <div class="review-text">${rv.content || ''}</div>
+          <div class="review-actions">
+            <span class="comment-btn">
+              <i class="ti ti-heart"></i> ${rv.like_count || 0}
+            </span>
+            <span class="comment-btn">
+              <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
+            </span>
+          </div>
         </div>
       `).join('');
     } catch (e) {
