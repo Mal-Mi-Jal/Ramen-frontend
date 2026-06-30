@@ -814,17 +814,26 @@
     const lat = currentRestaurant.latitude;
     const lng = currentRestaurant.longitude;
     if (lat && lng) {
-      document.getElementById("detail-map").innerHTML = "";
+      const mapEl = document.getElementById("detail-map");
+      mapEl.innerHTML = "";
+
+      const targetRestaurantId = currentRestaurant.id; // 💡 이 시점의 가게 id를 기억
+
       kakao.maps.load(function() {
-        const mapContainer = document.getElementById("detail-map");
+        // 💡 콜백이 늦게 와서 그 사이 다른 가게로 넘어갔으면 그리지 않음
+        if (!currentRestaurant || currentRestaurant.id !== targetRestaurantId) return;
+
         const mapOption = {
           center: new kakao.maps.LatLng(lat, lng),
           level: 4
         };
-        const map = new kakao.maps.Map(mapContainer, mapOption);
+        const map = new kakao.maps.Map(mapEl, mapOption);
         const markerPosition = new kakao.maps.LatLng(lat, lng);
         const marker = new kakao.maps.Marker({ position: markerPosition });
         marker.setMap(map);
+
+        // 💡 지도가 보이는 div 크기가 늦게 잡히는 경우 강제 relayout
+        setTimeout(() => map.relayout(), 0);
       });
 
       document.getElementById("detail-kakao-link").href =
