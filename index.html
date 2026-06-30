@@ -814,7 +814,7 @@
     const lng = currentRestaurant.longitude;
     if (lat && lng) {
       document.getElementById("detail-map").src =
-        `https://map.kakao.com/?map_type=TYPE_MAP&urlX=${lng}&urlY=${lat}&urlLevel=3&map_print=false&map=embed`;
+  `https://map.kakao.com/?map_type=TYPE_MAP&q=${encodeURIComponent(currentRestaurant.name)}&map=embed`;
       document.getElementById("detail-kakao-link").href =
         currentRestaurant.kakao_place_id
           ? `https://place.map.kakao.com/${currentRestaurant.kakao_place_id}`
