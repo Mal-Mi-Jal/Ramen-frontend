@@ -480,7 +480,7 @@
     <div class="stats-row" style="flex-shrink:0">
       <div class="stat-box"><div class="stat-val" id="prof-reviews">-</div><div class="stat-lbl">리뷰</div></div>
       <div class="stat-box"><div class="stat-val" id="prof-visits">-</div><div class="stat-lbl">방문 인증</div></div>
-      <div class="stat-box"><div class="stat-val">-</div><div class="stat-lbl">받은 추천</div></div>
+      <div class="stat-box"><div class="stat-val" id="prof-likes">-</div><div class="stat-lbl">받은 추천</div></div>
     </div>
     <div style="height:8px;background:var(--bg3);flex-shrink:0"></div>
     <div class="menu-item" onclick="navigate('visits')"><i class="ti ti-history"></i><span>방문 기록</span><i class="ti ti-chevron-right arr"></i></div>
@@ -1375,6 +1375,33 @@ async function writeComment(reviewId){
         document.getElementById('prof-avatar').textContent = d.data.nickname[0];
       }
     } catch (e) {}
+
+    loadProfileStats();
+  }
+
+  async function loadProfileStats() {
+    // 방문 인증 횟수
+    try {
+      const r = await fetch(API + '/users/me/visit-history?size=1', { headers: authHeader() });
+      const d = await r.json();
+      document.getElementById('prof-visits').textContent = d.data?.pagination?.total ?? '-';
+    } catch (e) {
+      document.getElementById('prof-visits').textContent = '-';
+    }
+
+    // 내 리뷰 수 + 받은 추천 합산
+    try {
+      const r = await fetch(API + '/users/me/reviews?size=100', { headers: authHeader() });
+      const d = await r.json();
+      const reviews = d.data?.reviews || [];
+      document.getElementById('prof-reviews').textContent = d.data?.pagination?.total ?? reviews.length;
+
+      const totalLikes = reviews.reduce((sum, rv) => sum + (rv.like_count || 0), 0);
+      document.getElementById('prof-likes').textContent = totalLikes;
+    } catch (e) {
+      document.getElementById('prof-reviews').textContent = '-';
+      document.getElementById('prof-likes').textContent = '-';
+    }
   }
 
    // ── 방문 기록 ─────────────────────────────
