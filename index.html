@@ -321,6 +321,8 @@
 .detail-extra-row a{color:var(--green-mid);text-decoration:none}
 .detail-map{width:100%;height:160px;border:none;border-radius:var(--radius-sm);margin-top:8px}
 .kakao-link-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:40px;background:#FEE500;color:#3C1E1E;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;text-decoration:none}
+    .load-more-btn{display:block;width:calc(100% - 32px);margin:12px 16px;height:42px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:14px;font-weight:500;cursor:pointer}
+.load-more-btn:hover{background:var(--bg3)}
   </style>
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d50c632eaee7b0c4c915bb23cd498a84&autoload=false"></script>
 </head>
@@ -516,6 +518,9 @@
   let timerSec = 1200;
   let currentCommentReviewId = null;
   let totalTimerSeconds = 1200;
+  let allSearchResults = [];
+  let displayedCount = 0;
+  const PAGE_SIZE = 10;
 
   // ── 화면 전환 ──────────────────────────────
   function navigate(name) {
@@ -639,60 +644,34 @@
   }
 
   function renderRestaurantList(restaurants){
+    allSearchResults = restaurants;
+    displayedCount = 0;
+    renderNextPage();
+}
 
-    const list =
-        document.getElementById("restaurant-list");
-
-    if(restaurants.length===0){
-
-        list.innerHTML =
-            '<div class="empty">검색 결과가 없습니다.</div>';
-
-        return;
-
-    }
-
-    list.innerHTML =
-        restaurants.map(rest=>`
-
+function renderCardHtml(rest){
+    return `
         <div class="rest-card"
             onclick="openDetail(${JSON.stringify(rest).replace(/"/g,'&quot;')})">
-
             <div class="rest-icon">
                 🍜
             </div>
-
             <div class="rest-info">
-
                 <div class="rest-name">
-
                     ${rest.name}
-
                 </div>
-
                 <div class="rest-addr">
-
                     ${rest.address || ''}
-
                 </div>
-
                 <div class="rest-meta">
-
                     <span class="rest-rating">
-
                         <i class="ti ti-star-filled"
                            style="font-size:12px"></i>
-
                         ${rest.average_rating?.toFixed(1) || '-'}
-
                     </span>
-
                     <span class="rest-dist">
-
                         리뷰 ${rest.review_count || 0}개
-
                     </span>
-
                     ${rest.distance_meters != null
                           ? `<span class="rest-dist">${
                              rest.distance_meters >= 1000
@@ -700,18 +679,45 @@
                                 : rest.distance_meters + "m"
                           }</span>`
                          : ""}
-
                 </div>
-
             </div>
-
             <i class="ti ti-chevron-right"
                style="color:var(--text3);font-size:18px"></i>
-
         </div>
+        `;
+}
 
-        `).join("");
+function renderNextPage(){
+    const list = document.getElementById("restaurant-list");
 
+    if (allSearchResults.length === 0){
+        list.innerHTML = '<div class="empty">검색 결과가 없습니다.</div>';
+        return;
+    }
+
+    const nextBatch = allSearchResults.slice(displayedCount, displayedCount + PAGE_SIZE);
+    const cardsHtml = nextBatch.map(renderCardHtml).join("");
+
+    if (displayedCount === 0) {
+        // 첫 페이지는 새로 그림
+        list.innerHTML = cardsHtml;
+    } else {
+        // 더보기는 기존 목록 뒤에 이어붙임 (버튼만 떼어내고 추가)
+        const existingBtn = document.getElementById("load-more-btn");
+        if (existingBtn) existingBtn.remove();
+        list.insertAdjacentHTML("beforeend", cardsHtml);
+    }
+
+    displayedCount += nextBatch.length;
+
+    // 더 보여줄 게 남았으면 "더보기" 버튼 추가
+    if (displayedCount < allSearchResults.length) {
+        list.insertAdjacentHTML("beforeend",
+            `<button class="load-more-btn" id="load-more-btn" onclick="renderNextPage()">
+                더보기 (${allSearchResults.length - displayedCount}개 더 있음)
+            </button>`
+        );
+    }
 }
 
   async function searchRestaurants() {
