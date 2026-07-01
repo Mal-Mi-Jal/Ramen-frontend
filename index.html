@@ -340,6 +340,18 @@
 .comment-name{font-size:12px;font-weight:500;color:var(--text)}
 .comment-text{font-size:13px;color:var(--text);margin-top:2px;line-height:1.5}
 .comment-date{font-size:11px;color:var(--text3);margin-top:2px}
+    .review-menu{position:relative;margin-left:auto}
+.review-menu-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:4px}
+.review-dropdown{display:none;position:absolute;right:0;top:28px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:10;min-width:100px}
+.review-dropdown.open{display:block}
+.review-dropdown button{display:block;width:100%;padding:10px 16px;background:none;border:none;text-align:left;font-size:14px;cursor:pointer;color:var(--text)}
+.review-dropdown button:hover{background:var(--bg2)}
+.review-dropdown button.delete-btn{color:var(--red)}
+.comment-edit-form{display:flex;gap:8px;margin-top:8px}
+.comment-edit-input{flex:1;height:36px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:var(--bg)}
+.comment-edit-input:focus{outline:none;border-color:var(--green)}
+.comment-edit-btn{height:36px;padding:0 12px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;cursor:pointer}
+.comment-cancel-btn{height:36px;padding:0 12px;background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;color:var(--text2)}
   </style>
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d50c632eaee7b0c4c915bb23cd498a84&autoload=false"></script>
 </head>
@@ -442,7 +454,7 @@
   <div class="screen" id="screen-write">
     <div class="page-header">
       <button class="back-btn" style="color:var(--text2)" onclick="navigate('detail')"><i class="ti ti-x"></i></button>
-      <h1>리뷰 작성</h1>
+      <h1 id="write-title">리뷰 작성</h1>
     </div>
     <div class="write-wrap">
       <div>
@@ -466,7 +478,7 @@
           <button class="revisit-btn" onclick="setRevisit(this,false)">글쎄요 🤔</button>
         </div>
       </div>
-      <button class="submit-btn" onclick="submitReview()">리뷰 등록하기</button>
+      <button class="submit-btn" id="write-submit-btn" onclick="submitReview()">리뷰 등록하기</button>
     </div>
   </div>
 
@@ -569,6 +581,7 @@
   let allSearchResults = [];
   let displayedCount = 0;
   const PAGE_SIZE = 10;
+  let editingReviewId = null;
 
   // ── 화면 전환 ──────────────────────────────
   function navigate(name) {
@@ -772,6 +785,55 @@ function renderNextPage(){
     }
 }
 
+  function renderReviewItem(rv, isMine) {
+  const isMyReview = isMine || (currentUser && rv.user?.id === currentUser?.id);
+  const menuHtml = isMyReview ? `
+    <div class="review-menu">
+      <button class="review-menu-btn" onclick="toggleReviewMenu(event, '${rv.id}')">
+        <i class="ti ti-dots-vertical"></i>
+      </button>
+      <div class="review-dropdown" id="review-menu-${rv.id}">
+        <button onclick="goEditReview('${rv.id}', ${rv.rating}, ${JSON.stringify(rv.content || '').replace(/"/g, '&quot;')}, ${rv.revisit_intention})">수정</button>
+        <button class="delete-btn" onclick="deleteReview('${rv.id}')">삭제</button>
+      </div>
+    </div>
+  ` : '';
+
+  const restaurantOrUser = isMine
+    ? `<div class="reviewer-name">${rv.restaurant?.name || ''}</div>`
+    : `<div class="reviewer-name">${rv.user?.nickname || '익명'}</div>`;
+
+  return `
+    <div class="review-item" id="review-item-${rv.id}">
+      <div class="reviewer">
+        <div class="avatar">${isMine ? (rv.restaurant?.name?.[0] || '?') : (rv.user?.nickname?.[0] || '?')}</div>
+        <div style="flex:1">
+          ${restaurantOrUser}
+          <div class="reviewer-date">${formatDate(rv.created_at)}</div>
+        </div>
+        ${menuHtml}
+      </div>
+      <div class="stars">${'⭐'.repeat(rv.rating)}</div>
+      <div class="review-text">${rv.content || ''}</div>
+      <div class="review-tags">
+        <span class="tag ${rv.revisit_intention ? 'revisit' : ''}">
+          ${rv.revisit_intention ? '재방문 의사 있음' : '재방문 의사 없음'}
+        </span>
+      </div>
+      <div class="review-actions">
+        <button class="like-btn" id="like-${rv.id}" onclick="toggleLike('${rv.id}', ${rv.like_count || 0})">
+          <i class="ti ti-heart"></i> ${rv.like_count || 0}
+        </button>
+        <button class="comment-toggle-btn" onclick="toggleComments('${rv.id}', this)">
+          <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
+        </button>
+      </div>
+      <div class="comment-section" id="comments-${rv.id}"></div>
+    </div>
+  `;
+}
+
+  // 식당 검색
   async function searchRestaurants() {
 
     const keyword =
@@ -821,6 +883,149 @@ function renderNextPage(){
     }
 
 }
+
+   // ── 리뷰 드롭다운 메뉴 ───────────────────
+  function toggleReviewMenu(e, reviewId) {
+    e.stopPropagation();
+    const menu = document.getElementById('review-menu-' + reviewId);
+    const isOpen = menu.classList.contains('open');
+    // 다른 열린 메뉴 닫기
+    document.querySelectorAll('.review-dropdown.open').forEach(m => m.classList.remove('open'));
+    if (!isOpen) menu.classList.add('open');
+  }
+
+  // 다른 곳 클릭 시 드롭다운 닫기
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.review-dropdown.open').forEach(m => m.classList.remove('open'));
+  });
+
+  // ── 리뷰 수정 ─────────────────────────────
+  function goEditReview(reviewId, rating, content, revisitIntention) {
+    editingReviewId = reviewId;
+    selectedStar = rating;
+    selectedRevisit = revisitIntention;
+
+    document.getElementById('write-title').textContent = '리뷰 수정';
+    document.getElementById('write-submit-btn').textContent = '수정 완료';
+    document.getElementById('review-text').value = content;
+
+    // 별점 표시
+    document.querySelectorAll('.star-pick').forEach((b, i) => b.classList.toggle('on', i < rating));
+
+    // 재방문 의사 표시
+    document.querySelectorAll('.revisit-btn').forEach((b, i) => {
+      b.classList.toggle('active',
+        (i === 0 && revisitIntention === true) ||
+        (i === 1 && revisitIntention === false)
+      );
+    });
+
+    document.querySelectorAll('.review-dropdown.open').forEach(m => m.classList.remove('open'));
+    navigate('write');
+  }
+
+  // ── 리뷰 삭제 ─────────────────────────────
+  async function deleteReview(reviewId) {
+    document.querySelectorAll('.review-dropdown.open').forEach(m => m.classList.remove('open'));
+    if (!confirm('리뷰를 삭제할까요?')) return;
+    try {
+      const r = await fetch(`${API}/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: authHeader()
+      });
+      if (r.ok) {
+        showToast('리뷰가 삭제됐어요.');
+        document.getElementById('review-item-' + reviewId)?.remove();
+      } else {
+        showToast('삭제에 실패했어요.');
+      }
+    } catch (e) {
+      showToast('서버에 연결할 수 없어요.');
+    }
+  }
+
+  // ── 댓글 수정/삭제 ────────────────────────
+  function renderCommentItem(c, reviewId) {
+    const isMine = currentUser && c.user?.id === currentUser?.id;
+    const actionHtml = isMine ? `
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="startEditComment('${reviewId}', '${c.id}', this)" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;padding:0">수정</button>
+        <button onclick="deleteComment('${reviewId}', '${c.id}')" style="background:none;border:none;font-size:12px;color:var(--red);cursor:pointer;padding:0">삭제</button>
+      </div>
+    ` : '';
+
+    return `
+      <div class="comment-row" id="comment-row-${c.id}">
+        <div class="comment-avatar">${c.user?.nickname?.[0] || '?'}</div>
+        <div class="comment-body">
+          <div class="comment-name">${c.user?.nickname || '익명'}</div>
+          <div class="comment-text" id="comment-text-${c.id}">${c.content}</div>
+          <div class="comment-date">${formatDate(c.created_at)}</div>
+          ${actionHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function startEditComment(reviewId, commentId, btn) {
+    const textEl = document.getElementById('comment-text-' + commentId);
+    const originalText = textEl.textContent.trim();
+    const row = document.getElementById('comment-row-' + commentId);
+
+    // 이미 수정 폼이 열려있으면 닫기
+    const existingForm = row.querySelector('.comment-edit-form');
+    if (existingForm) { existingForm.remove(); return; }
+
+    const form = document.createElement('div');
+    form.className = 'comment-edit-form';
+    form.innerHTML = `
+      <input class="comment-edit-input" id="edit-comment-input-${commentId}" value="${originalText}">
+      <button class="comment-cancel-btn" onclick="this.parentElement.remove()">취소</button>
+      <button class="comment-edit-btn" onclick="submitEditComment('${reviewId}', '${commentId}')">완료</button>
+    `;
+    row.querySelector('.comment-body').appendChild(form);
+    document.getElementById('edit-comment-input-' + commentId).focus();
+  }
+
+  async function submitEditComment(reviewId, commentId) {
+    const input = document.getElementById('edit-comment-input-' + commentId);
+    const content = input?.value.trim();
+    if (!content) { showToast('댓글 내용을 입력해주세요.'); return; }
+    try {
+      const r = await fetch(`${API}/reviews/${reviewId}/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      if (r.ok) {
+        document.getElementById('comment-text-' + commentId).textContent = content;
+        input.closest('.comment-edit-form').remove();
+        showToast('댓글이 수정됐어요.');
+      } else {
+        showToast('수정에 실패했어요.');
+      }
+    } catch (e) {
+      showToast('서버에 연결할 수 없어요.');
+    }
+  }
+
+  async function deleteComment(reviewId, commentId) {
+    if (!confirm('댓글을 삭제할까요?')) return;
+    try {
+      const r = await fetch(`${API}/reviews/${reviewId}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: authHeader()
+      });
+      if (r.ok) {
+        document.getElementById('comment-row-' + commentId)?.remove();
+        showToast('댓글이 삭제됐어요.');
+      } else {
+        showToast('삭제에 실패했어요.');
+      }
+    } catch (e) {
+      showToast('서버에 연결할 수 없어요.');
+    }
+  }
 
   function getPosition() {
     return new Promise((resolve, reject) => {
@@ -928,35 +1133,7 @@ function renderNextPage(){
         list.innerHTML = '<div class="empty">아직 리뷰가 없어요.<br>첫 번째 리뷰를 남겨보세요! 🍜</div>';
         return;
       }
-      list.innerHTML = reviews.map((rv, i) => `
-        <div class="review-item">
-          <div class="reviewer">
-            <div class="avatar">${rv.user?.nickname?.[0] || '?'}</div>
-            <div>
-              <div class="reviewer-name">${rv.user?.nickname || '익명'}</div>
-              <div class="reviewer-date">${formatDate(rv.created_at)}</div>
-            </div>
-          </div>
-          <div class="stars">${'⭐'.repeat(rv.rating)}</div>
-          <div class="review-text">${rv.content || ''}</div>
-          <div class="review-tags">
-            <span class="tag ${rv.revisit_intention ? 'revisit' : ''}">
-              ${rv.revisit_intention ? '재방문 의사 있음' : '재방문 의사 없음'}
-            </span>
-          </div>
-          <div class="review-actions">
-            <button class="like-btn" id="like-${i}" onclick="toggleLike('${rv.id}', ${i}, ${rv.like_count})">
-              <i class="ti ti-heart"></i> ${rv.like_count || 0}
-            </button>
-            <button
-            class="comment-btn"
-            onclick="event.stopPropagation(); openCommentModal('${rv.id}')">
-              <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
-            </button>
-          </div>
-          <div id="comments-${rv.id}" class="comments-box" style="display:none"></div>
-        </div>
-      `).join('');
+      list.innerHTML = reviews.map(rv => renderReviewItem(rv, false)).join('');
     } catch (e) {
       list.innerHTML = '<div class="empty">리뷰를 불러올 수 없어요.</div>';
     }
@@ -981,73 +1158,35 @@ function renderNextPage(){
     }
   }
 
-  async function toggleComments(reviewId){
-
+ async function toggleComments(reviewId){
     const box = document.getElementById(`comments-${reviewId}`);
-
     if(box.style.display === "block"){
         box.style.display = "none";
         return;
     }
-
     box.style.display = "block";
     box.innerHTML = "댓글 불러오는 중...";
-
     try{
-
         const r = await fetch(
             `${API}/reviews/${reviewId}/comments?page=1&size=30`
         );
-
         const d = await r.json();
-
         const comments = d.data.comments;
-
-        box.innerHTML = comments.map(c=>`
-
-            <div class="comment-item">
-
-                <div class="comment-user">
-                    <b>${c.user.nickname}</b>
-                </div>
-
-                <div class="comment-content">
-                    ${c.content}
-                </div>
-
-                <div class="comment-date">
-                    ${formatDate(c.created_at)}
-                </div>
-
-            </div>
-
-        `).join("");
-
+        box.innerHTML = comments.map(c => renderCommentItem(c, reviewId)).join('');
         box.innerHTML += `
-
             <div class="comment-write">
-
                 <input
                     id="comment-input-${reviewId}"
                     placeholder="댓글을 입력하세요">
-
                 <button
                     onclick="writeComment('${reviewId}')">
-
                     등록
-
                 </button>
-
             </div>
-
         `;
-
     }catch(e){
-
         showToast("댓글을 불러오지 못했습니다.");
-
     }
-
 }
 
 async function writeComment(reviewId){
@@ -1311,7 +1450,10 @@ async function writeComment(reviewId){
   // ── 리뷰 작성 ─────────────────────────────
   function goWrite() {
     if (!token) { showToast('로그인이 필요해요'); return; }
+    editingReviewId = null;
     selectedStar = 0; selectedRevisit = null;
+    document.getElementById('write-title').textContent = '리뷰 작성';
+    document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
     document.getElementById('review-text').value = '';
     document.querySelectorAll('.star-pick').forEach(b => b.classList.remove('on'));
     document.querySelectorAll('.revisit-btn').forEach(b => b.classList.remove('active'));
@@ -1334,6 +1476,37 @@ async function writeComment(reviewId){
     if (selectedRevisit === null) { showToast('재방문 의사를 선택해주세요'); return; }
     const content = document.getElementById('review-text').value.trim();
     if (!content) { showToast('리뷰 내용을 입력해주세요'); return; }
+
+    // 수정 모드
+    if (editingReviewId) {
+      try {
+        const r = await fetch(`${API}/reviews/${editingReviewId}`, {
+          method: 'PATCH',
+          headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: selectedStar,
+            content,
+            revisit_intention: selectedRevisit
+          })
+        });
+        if (r.ok) {
+          showToast('리뷰가 수정됐어요! 🍜');
+          editingReviewId = null;
+          document.getElementById('write-title').textContent = '리뷰 작성';
+          document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
+          navigate('detail');
+          loadReviews(currentRestaurant.id);
+        } else {
+          const d = await r.json();
+          showToast(d.message || '수정에 실패했어요.');
+        }
+      } catch (e) {
+        showToast('서버에 연결할 수 없어요.');
+      }
+      return;
+    }
+
+    // 새 리뷰 작성 모드
     if (!currentVerificationId) { showToast('방문 인증이 필요해요'); return; }
     try {
       const r = await fetch(API + '/reviews', {
@@ -1445,28 +1618,7 @@ async function writeComment(reviewId){
         list.innerHTML = '<div class="empty">아직 작성한 리뷰가 없어요 🍜</div>';
         return;
       }
-      list.innerHTML = reviews.map(rv => `
-        <div class="review-item">
-          <div class="reviewer">
-            <div class="avatar">${rv.restaurant?.name?.[0] || '?'}</div>
-            <div>
-              <div class="reviewer-name">${rv.restaurant?.name || ''}</div>
-              <div class="reviewer-date">${formatDate(rv.created_at)}</div>
-            </div>
-          </div>
-          <div class="stars">${'⭐'.repeat(rv.rating)}</div>
-          <div class="review-text">${rv.content || ''}</div>
-          <div class="review-actions">
-            <span class="comment-btn">
-              <i class="ti ti-heart"></i> ${rv.like_count || 0}
-            </span>
-            <button class="comment-toggle-btn" onclick="toggleComments('${rv.id}', this)">
-              <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
-            </button>
-          </div>
-          <div class="comment-section" id="comments-${rv.id}"></div>
-        </div>
-      `).join('');
+      list.innerHTML = reviews.map(rv => renderReviewItem(rv, true)).join('');
     } catch (e) {
       list.innerHTML = '<div class="empty">내 리뷰를 불러올 수 없어요.<br>(백엔드 API 준비 중일 수 있어요)</div>';
     }
