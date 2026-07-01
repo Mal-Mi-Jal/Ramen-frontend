@@ -568,6 +568,58 @@
   // ✅ 백엔드 주소 — Render 배포 주소
   const API = 'https://ramen-production.up.railway.app';
 
+  token = localStorage.getItem('access_token');
+  window.addEventListener('DOMContentLoaded', async () => {
+  const savedToken = localStorage.getItem('access_token');
+  if (savedToken) {
+    token = savedToken;
+    try {
+      const r = await fetch(API + '/users/me', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (r.ok) {
+        const d = await r.json();
+        currentUser = { email: d.data.email, nickname: d.data.nickname };
+        afterLogin();
+      } else {
+        // access_token 만료 → refresh_token으로 재발급 시도
+        await tryRefreshToken();
+      }
+    } catch (e) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
+  }
+});
+
+async function tryRefreshToken() {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return;
+  try {
+    const r = await fetch(API + '/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (r.ok) {
+      const d = await r.json();
+      token = d.data?.access_token;
+      localStorage.setItem('access_token', token);
+      // 유저 정보 다시 가져오기
+      const userR = await fetch(API + '/users/me', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (userR.ok) {
+        const userData = await userR.json();
+        currentUser = { email: userData.data.email, nickname: userData.data.nickname };
+        afterLogin();
+      }
+    } else {
+      // refresh_token도 만료 → 로그아웃 처리
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
+  } catch (e) {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+}
   let token = null;
   let currentUser = null;
   let currentRestaurant = null;
@@ -623,6 +675,8 @@
       const d = await r.json();
       if (r.ok) {
         token = d.data?.access_token;
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('refresh_token', d.data?.refresh_token || '');
         currentUser = { email, nickname: d.data?.nickname || email.split('@')[0] };
         afterLogin();
       } else {
@@ -680,6 +734,8 @@
       await fetch(API + '/auth/logout', { method: 'POST', headers: authHeader() });
     } catch (e) {}
     token = null; currentUser = null;
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     showToast('로그아웃 되었습니다.');
     setTimeout(() => navigate('auth'), 300);
   }
