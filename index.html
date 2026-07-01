@@ -858,7 +858,7 @@ function renderNextPage(){
     }
 }
 
-  function renderReviewItem(rv, isMine) {
+function renderReviewItem(rv, isMine) {
   const isMyReview = isMine || (currentUser && rv.user?.id === currentUser?.id);
   const menuHtml = isMyReview ? `
     <div class="review-menu">
@@ -897,11 +897,11 @@ function renderNextPage(){
         <button class="like-btn" id="like-${rv.id}" onclick="toggleLike('${rv.id}', ${rv.like_count || 0})">
           <i class="ti ti-heart"></i> ${rv.like_count || 0}
         </button>
-        <button class="comment-toggle-btn" onclick="toggleComments('${rv.id}', this)">
+        <button class="comment-toggle-btn" onclick="toggleComments('${rv.id}')">
           <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
         </button>
       </div>
-      <div class="comment-section" id="comments-${rv.id}"></div>
+      <div class="comments-box" id="comments-${rv.id}" style="display:none"></div>
     </div>
   `;
 }
