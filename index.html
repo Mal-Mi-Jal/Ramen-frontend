@@ -599,7 +599,7 @@
       const r = await fetch(API + '/users/me', { headers: { 'Authorization': 'Bearer ' + token } });
       if (r.ok) {
         const d = await r.json();
-        currentUser = { email: d.data.email, nickname: d.data.nickname };
+        currentUser = { id: d.data.id, email: d.data.email, nickname: d.data.nickname };
         document.getElementById('splash').style.display = 'none'; // 💡 스플래시 제거
         afterLogin();
       } else {
@@ -740,7 +740,7 @@ async function tryRefreshToken() {
       const r = await fetch(API + '/users/me', { headers: authHeader() });
       if (r.ok) {
         const d = await r.json();
-        currentUser = { email: d.data.email, nickname: d.data.nickname };
+        currentUser = { id: d.data.id, email: d.data.email, nickname: d.data.nickname };
       }
     } catch (e) {}
     navigate('home');
