@@ -1019,6 +1019,9 @@ function renderNextPage(){
 
   // ── 댓글 수정/삭제 ────────────────────────
   function renderCommentItem(c, reviewId) {
+    console.log('currentUser:', currentUser);
+    console.log('c.user.id:', c.user?.id);
+    console.log('isMine:', currentUser && c.user?.id === currentUser?.id);
     const isMine = currentUser && c.user?.id === currentUser?.id;
     const actionHtml = isMine ? `
       <div style="display:flex;gap:8px;margin-top:4px">
