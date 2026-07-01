@@ -568,6 +568,21 @@
   // ✅ 백엔드 주소 — Render 배포 주소
   const API = 'https://ramen-production.up.railway.app';
 
+  let token = null;
+  let currentUser = null;
+  let currentRestaurant = null;
+  let currentVerificationId = null;
+  let selectedStar = 0;
+  let selectedRevisit = null;
+  let timerInterval = null;
+  let timerSec = 1200;
+  let currentCommentReviewId = null;
+  let totalTimerSeconds = 1200;
+  let allSearchResults = [];
+  let displayedCount = 0;
+  const PAGE_SIZE = 10;
+  let editingReviewId = null;
+
   token = localStorage.getItem('access_token');
   window.addEventListener('DOMContentLoaded', async () => {
   const savedToken = localStorage.getItem('access_token');
@@ -620,20 +635,7 @@ async function tryRefreshToken() {
     localStorage.removeItem('refresh_token');
   }
 }
-  let token = null;
-  let currentUser = null;
-  let currentRestaurant = null;
-  let currentVerificationId = null;
-  let selectedStar = 0;
-  let selectedRevisit = null;
-  let timerInterval = null;
-  let timerSec = 1200;
-  let currentCommentReviewId = null;
-  let totalTimerSeconds = 1200;
-  let allSearchResults = [];
-  let displayedCount = 0;
-  const PAGE_SIZE = 10;
-  let editingReviewId = null;
+  
 
   // ── 화면 전환 ──────────────────────────────
   function navigate(name) {
