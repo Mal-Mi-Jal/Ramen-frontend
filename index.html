@@ -877,33 +877,49 @@ function renderReviewItem(rv, isMine) {
     : `<div class="reviewer-name">${rv.user?.nickname || '익명'}</div>`;
 
   return `
-    <div class="review-item" id="review-item-${rv.id}">
-      <div class="reviewer">
-        <div class="avatar">${isMine ? (rv.restaurant?.name?.[0] || '?') : (rv.user?.nickname?.[0] || '?')}</div>
-        <div style="flex:1">
-          ${restaurantOrUser}
-          <div class="reviewer-date">${formatDate(rv.created_at)}</div>
-        </div>
-        ${menuHtml}
-      </div>
-      <div class="stars">${'⭐'.repeat(rv.rating)}</div>
-      <div class="review-text">${rv.content || ''}</div>
-      <div class="review-tags">
-        <span class="tag ${rv.revisit_intention ? 'revisit' : ''}">
-          ${rv.revisit_intention ? '재방문 의사 있음' : '재방문 의사 없음'}
-        </span>
-      </div>
-      <div class="review-actions">
-        <button class="like-btn" id="like-${rv.id}" onclick="toggleLike('${rv.id}', ${rv.like_count || 0})">
-          <i class="ti ti-heart"></i> ${rv.like_count || 0}
-        </button>
-        <button class="comment-toggle-btn"
-        onclick="openCommentModal('${rv.id}')">
-          <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
-        </button>
-  `;
-}
+  <div class="review-item" id="review-item-${rv.id}">
+    <div class="reviewer">
+      <div class="avatar">${isMine ? (rv.restaurant?.name?.[0] || '?') : (rv.user?.nickname?.[0] || '?')}</div>
 
+      <div style="flex:1">
+        ${restaurantOrUser}
+        <div class="reviewer-date">${formatDate(rv.created_at)}</div>
+      </div>
+
+      ${menuHtml}
+    </div>
+
+    <div class="stars">${'⭐'.repeat(rv.rating)}</div>
+
+    <div class="review-text">
+      ${rv.content || ''}
+    </div>
+
+    <div class="review-tags">
+      <span class="tag ${rv.revisit_intention ? 'revisit' : ''}">
+        ${rv.revisit_intention ? '재방문 의사 있음' : '재방문 의사 없음'}
+      </span>
+    </div>
+
+    <div class="review-actions">
+
+      <button class="like-btn"
+              id="like-${rv.id}"
+              onclick="toggleLike('${rv.id}', ${rv.like_count || 0})">
+        <i class="ti ti-heart"></i>
+        ${rv.like_count || 0}
+      </button>
+
+      <button class="comment-toggle-btn"
+              onclick="openCommentModal('${rv.id}')">
+        <i class="ti ti-message-circle"></i>
+        ${rv.comment_count || 0}
+      </button>
+
+    </div>
+
+  </div>
+`;
   // 식당 검색
   async function searchRestaurants() {
 
