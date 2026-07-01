@@ -897,12 +897,10 @@ function renderReviewItem(rv, isMine) {
         <button class="like-btn" id="like-${rv.id}" onclick="toggleLike('${rv.id}', ${rv.like_count || 0})">
           <i class="ti ti-heart"></i> ${rv.like_count || 0}
         </button>
-        <button class="comment-toggle-btn" onclick="toggleComments('${rv.id}')">
+        <button class="comment-toggle-btn"
+        onclick="openCommentModal('${rv.id}')">
           <i class="ti ti-message-circle"></i> ${rv.comment_count || 0}
         </button>
-      </div>
-      <div class="comments-box" id="comments-${rv.id}" style="display:none"></div>
-    </div>
   `;
 }
 
@@ -1233,92 +1231,6 @@ function renderReviewItem(rv, isMine) {
       showToast('로그인이 필요해요');
     }
   }
-
- async function toggleComments(reviewId){
-    const box = document.getElementById(`comments-${reviewId}`);
-    if(box.style.display === "block"){
-        box.style.display = "none";
-        return;
-    }
-    box.style.display = "block";
-    box.innerHTML = "댓글 불러오는 중...";
-    try{
-        const r = await fetch(
-            `${API}/reviews/${reviewId}/comments?page=1&size=30`
-        );
-        const d = await r.json();
-        const comments = d.data.comments;
-      console.log('comments:', comments); // 💡 여기 추가
-        console.log('renderCommentItem 존재?', typeof renderCommentItem);
-        box.innerHTML = comments.map(c => renderCommentItem(c, reviewId)).join('');
-        box.innerHTML += `
-            <div class="comment-write">
-                <input
-                    id="comment-input-${reviewId}"
-                    placeholder="댓글을 입력하세요">
-                <button
-                    onclick="writeComment('${reviewId}')">
-                    등록
-                </button>
-            </div>
-        `;
-    }catch(e){
-        showToast("댓글을 불러오지 못했습니다.");
-    }
-}
-
-async function writeComment(reviewId){
-
-    const input =
-        document.getElementById(`comment-input-${reviewId}`);
-
-    const content = input.value.trim();
-
-    if(content.length===0){
-        showToast("댓글을 입력해주세요.");
-        return;
-    }
-
-    const r = await fetch(
-
-        `${API}/reviews/${reviewId}/comments`,
-
-        {
-
-            method:"POST",
-
-            headers:{
-                ...authHeader(),
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-
-                content
-
-            })
-
-        }
-
-    );
-
-    const d = await r.json();
-
-    if(!r.ok){
-
-        showToast(d.message);
-
-        return;
-
-    }
-
-    showToast("댓글 작성 완료!");
-
-    toggleComments(reviewId);
-
-    toggleComments(reviewId);
-
-}
 
   // ── 방문 인증 ──────────────────────────────
   async function openVerify() {
