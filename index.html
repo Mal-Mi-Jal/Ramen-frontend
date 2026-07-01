@@ -1702,45 +1702,7 @@ async function writeComment(reviewId){
     }
   }
 
-  async function toggleComments(reviewId, btn) {
-    const section = document.getElementById('comments-' + reviewId);
-    const isOpen = section.classList.contains('open');
-
-    if (isOpen) {
-      section.classList.remove('open');
-      return;
-    }
-
-    section.classList.add('open');
-
-    if (section.dataset.loaded === 'true') return; // 이미 불러온 적 있으면 재요청 안 함
-
-    section.innerHTML = '<div class="loading" style="padding:10px 0">댓글을 불러오는 중...</div>';
-
-    try {
-      const r = await fetch(`${API}/reviews/${reviewId}/comments`);
-      const d = await r.json();
-      const comments = d.data?.comments || [];
-
-      if (comments.length === 0) {
-        section.innerHTML = '<div class="empty" style="padding:10px 0">아직 댓글이 없어요.</div>';
-      } else {
-        section.innerHTML = comments.map(c => `
-          <div class="comment-row">
-            <div class="comment-avatar">${c.user?.nickname?.[0] || '?'}</div>
-            <div class="comment-body">
-              <div class="comment-name">${c.user?.nickname || '익명'}</div>
-              <div class="comment-text">${c.content || ''}</div>
-              <div class="comment-date">${formatDate(c.created_at)}</div>
-            </div>
-          </div>
-        `).join('');
-      }
-      section.dataset.loaded = 'true';
-    } catch (e) {
-      section.innerHTML = '<div class="empty" style="padding:10px 0">댓글을 불러올 수 없어요.</div>';
-    }
-  }
+ 
 
   // ── 프로필 수정 ───────────────────────────
   function goEditProfile() {
