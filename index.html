@@ -945,8 +945,10 @@ function renderReviewItem(rv, isMine) {
         ${rv.like_count || 0}
       </button>
 
-      <button class="comment-toggle-btn"
-              onclick="openCommentModal('${rv.id}')">
+     <button
+    id="comment-btn-${rv.id}"
+    class="comment-toggle-btn"
+    onclick="openCommentModal('${rv.id}')">
         <i class="ti ti-message-circle"></i>
         ${rv.comment_count || 0}
       </button>
@@ -1068,6 +1070,30 @@ function renderReviewItem(rv, isMine) {
   }
 
   // ── 댓글 수정/삭제 ────────────────────────
+  function updateCommentCount(reviewId, diff){
+
+    const btn =
+        document.getElementById(
+            `comment-btn-${reviewId}`
+        );
+
+    if(!btn) return;
+
+    const current =
+        parseInt(
+            btn.textContent.match(/\d+/)?.[0] || "0"
+        );
+
+    const next =
+        Math.max(0, current + diff);
+
+    btn.innerHTML = `
+        <i class="ti ti-message-circle"></i>
+        ${next}
+    `;
+
+}
+  
   function renderCommentItem(c, reviewId) {
 
     const isMine =
@@ -1216,13 +1242,15 @@ function renderReviewItem(rv, isMine) {
 
         );
 
-    if(response.ok){
+   if(response.ok){
 
-        showToast("댓글이 수정되었습니다.");
+    showToast("댓글이 수정되었습니다.");
 
-        await loadComments();
+    await loadComments();
 
-    }else{
+    await loadReviews(currentRestaurant.id);
+
+}else{
 
         showToast("수정 실패");
 
@@ -1253,20 +1281,23 @@ function renderReviewItem(rv, isMine) {
 
         );
 
-    if(response.ok){
+  if(response.ok){
 
-        showToast("댓글이 삭제되었습니다.");
+    updateCommentCount(
+        reviewId,
+        -1
+    );
 
-        await loadComments();
+    await loadComments();
 
-    }else{
+    showToast("댓글이 삭제되었습니다.");
 
-        showToast("삭제 실패");
+}else{
 
-    }
+    showToast("댓글 삭제에 실패했습니다.");
 
 }
-
+    
   function getPosition() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) { reject(new Error('GPS 미지원')); return; }
@@ -1909,35 +1940,51 @@ async function submitComment(){
 
     }
 
-    await fetch(
+    const response =
+        await fetch(
 
-        `${API}/reviews/${currentCommentReviewId}/comments`,
+            `${API}/reviews/${currentCommentReviewId}/comments`,
 
-        {
+            {
 
-            method:"POST",
+                method:"POST",
 
-            headers:{
+                headers:{
 
-                ...authHeader(),
+                    ...authHeader(),
 
-                "Content-Type":"application/json"
+                    "Content-Type":"application/json"
 
-            },
+                },
 
-            body:JSON.stringify({
+                body:JSON.stringify({
 
-                content:input.value
+                    content:input.value
 
-            })
+                })
 
-        }
+            }
 
-    );
+        );
 
-    input.value="";
+    if(response.ok){
 
-    loadComments();
+        input.value = "";
+
+        updateCommentCount(
+            currentCommentReviewId,
+            +1
+        );
+
+        await loadComments();
+
+        showToast("댓글이 등록되었습니다.");
+
+    }else{
+
+        showToast("댓글 등록에 실패했습니다.");
+
+    }
 
 }
   
