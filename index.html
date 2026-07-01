@@ -358,8 +358,14 @@
 <body>
 <div class="phone" id="app">
 
+  <div id="splash" style="position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999">
+    <div style="font-size:48px">🍜</div>
+    <div style="font-size:18px;font-weight:600;color:var(--text);margin-top:12px">RamenLog</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:6px">잠시만 기다려주세요...</div>
+  </div>
+
   <!-- AUTH -->
-  <div class="screen active" id="screen-auth">
+  <div class="screen" id="screen-auth">
     <div class="auth-wrap">
       <div class="auth-logo">
         <div class="logo-mark">🍜</div>
@@ -586,6 +592,7 @@
   token = localStorage.getItem('access_token');
   window.addEventListener('DOMContentLoaded', async () => {
   const savedToken = localStorage.getItem('access_token');
+
   if (savedToken) {
     token = savedToken;
     try {
@@ -593,15 +600,23 @@
       if (r.ok) {
         const d = await r.json();
         currentUser = { email: d.data.email, nickname: d.data.nickname };
+        document.getElementById('splash').style.display = 'none'; // 💡 스플래시 제거
         afterLogin();
       } else {
-        // access_token 만료 → refresh_token으로 재발급 시도
         await tryRefreshToken();
+        document.getElementById('splash').style.display = 'none'; // 💡 스플래시 제거
       }
     } catch (e) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      token = null;
+      document.getElementById('splash').style.display = 'none'; // 💡 스플래시 제거
+      navigate('auth');
     }
+  } else {
+    // 토큰 없으면 바로 로그인 화면
+    document.getElementById('splash').style.display = 'none'; // 💡 스플래시 제거
+    navigate('auth');
   }
 });
 
