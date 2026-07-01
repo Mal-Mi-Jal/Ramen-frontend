@@ -1248,6 +1248,8 @@ function renderNextPage(){
         );
         const d = await r.json();
         const comments = d.data.comments;
+      console.log('comments:', comments); // 💡 여기 추가
+        console.log('renderCommentItem 존재?', typeof renderCommentItem);
         box.innerHTML = comments.map(c => renderCommentItem(c, reviewId)).join('');
         box.innerHTML += `
             <div class="comment-write">
