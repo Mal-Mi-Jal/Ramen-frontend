@@ -315,6 +315,41 @@
     font-weight:700;
 
 }
+
+    .comment-row{
+display:flex;
+gap:10px;
+margin-bottom:16px;
+}
+
+.comment-avatar{
+width:36px;
+height:36px;
+border-radius:50%;
+background:#eee;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+}
+
+.comment-body{
+flex:1;
+}
+
+.comment-name{
+font-weight:600;
+margin-bottom:4px;
+}
+
+.comment-text{
+margin-bottom:4px;
+}
+
+.comment-date{
+font-size:12px;
+color:#888;
+}
     .detail-extra{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px}
 .detail-extra-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;color:var(--text)}
 .detail-extra-row i{font-size:18px;color:var(--text2);flex-shrink:0}
@@ -1034,89 +1069,203 @@ function renderReviewItem(rv, isMine) {
 
   // ── 댓글 수정/삭제 ────────────────────────
   function renderCommentItem(c, reviewId) {
-    console.log('currentUser:', currentUser);
-    console.log('c.user.id:', c.user?.id);
-    console.log('isMine:', currentUser && c.user?.id === currentUser?.id);
-    const isMine = currentUser && c.user?.id === currentUser?.id;
-    const actionHtml = isMine ? `
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button onclick="startEditComment('${reviewId}', '${c.id}', this)" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;padding:0">수정</button>
-        <button onclick="deleteComment('${reviewId}', '${c.id}')" style="background:none;border:none;font-size:12px;color:var(--red);cursor:pointer;padding:0">삭제</button>
-      </div>
-    ` : '';
+
+    const isMine =
+        currentUser &&
+        c.user?.id === currentUser?.id;
+
+    const actionHtml =
+        isMine
+            ? `
+            <div style="display:flex;gap:8px;margin-top:4px">
+
+                <button
+                    onclick="startEditComment('${reviewId}','${c.id}')"
+                    style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;padding:0">
+
+                    수정
+
+                </button>
+
+                <button
+                    onclick="deleteComment('${reviewId}','${c.id}')"
+                    style="background:none;border:none;font-size:12px;color:var(--red);cursor:pointer;padding:0">
+
+                    삭제
+
+                </button>
+
+            </div>
+            `
+            : "";
 
     return `
-      <div class="comment-row" id="comment-row-${c.id}">
-        <div class="comment-avatar">${c.user?.nickname?.[0] || '?'}</div>
-        <div class="comment-body">
-          <div class="comment-name">${c.user?.nickname || '익명'}</div>
-          <div class="comment-text" id="comment-text-${c.id}">${c.content}</div>
-          <div class="comment-date">${formatDate(c.created_at)}</div>
-          ${actionHtml}
+        <div class="comment-row" id="comment-row-${c.id}">
+
+            <div class="comment-avatar">
+
+                ${c.user?.nickname?.[0] || "?"}
+
+            </div>
+
+            <div class="comment-body">
+
+                <div class="comment-name">
+
+                    ${c.user?.nickname || "익명"}
+
+                </div>
+
+                <div
+                    class="comment-text"
+                    id="comment-text-${c.id}">
+
+                    ${c.content}
+
+                </div>
+
+                <div class="comment-date">
+
+                    ${formatDate(c.created_at)}
+
+                </div>
+
+                ${actionHtml}
+
+            </div>
+
         </div>
-      </div>
     `;
-  }
+}
 
-  function startEditComment(reviewId, commentId, btn) {
-    const textEl = document.getElementById('comment-text-' + commentId);
-    const originalText = textEl.textContent.trim();
-    const row = document.getElementById('comment-row-' + commentId);
+ function startEditComment(reviewId, commentId){
 
-    // 이미 수정 폼이 열려있으면 닫기
-    const existingForm = row.querySelector('.comment-edit-form');
-    if (existingForm) { existingForm.remove(); return; }
+    const textEl =
+        document.getElementById(
+            `comment-text-${commentId}`
+        );
 
-    const form = document.createElement('div');
-    form.className = 'comment-edit-form';
-    form.innerHTML = `
-      <input class="comment-edit-input" id="edit-comment-input-${commentId}" value="${originalText}">
-      <button class="comment-cancel-btn" onclick="this.parentElement.remove()">취소</button>
-      <button class="comment-edit-btn" onclick="submitEditComment('${reviewId}', '${commentId}')">완료</button>
+    const original =
+        textEl.textContent.trim();
+
+    textEl.innerHTML = `
+
+        <input
+            id="edit-input-${commentId}"
+            value="${original}"
+            style="width:100%;padding:8px">
+
+        <div
+            style="display:flex;gap:8px;margin-top:8px">
+
+            <button
+                onclick="submitEditComment('${reviewId}','${commentId}')">
+
+                저장
+
+            </button>
+
+            <button
+                onclick="loadComments()">
+
+                취소
+
+            </button>
+
+        </div>
+
     `;
-    row.querySelector('.comment-body').appendChild(form);
-    document.getElementById('edit-comment-input-' + commentId).focus();
-  }
+}
+  async function submitEditComment(reviewId, commentId){
 
-  async function submitEditComment(reviewId, commentId) {
-    const input = document.getElementById('edit-comment-input-' + commentId);
-    const content = input?.value.trim();
-    if (!content) { showToast('댓글 내용을 입력해주세요.'); return; }
-    try {
-      const r = await fetch(`${API}/reviews/${reviewId}/comments/${commentId}`, {
-        method: 'PATCH',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content })
-      });
-      if (r.ok) {
-        document.getElementById('comment-text-' + commentId).textContent = content;
-        input.closest('.comment-edit-form').remove();
-        showToast('댓글이 수정됐어요.');
-      } else {
-        showToast('수정에 실패했어요.');
-      }
-    } catch (e) {
-      showToast('서버에 연결할 수 없어요.');
-    }
-  }
+    const content =
+        document
+            .getElementById(
+                `edit-input-${commentId}`
+            )
+            .value
+            .trim();
 
-  async function deleteComment(reviewId, commentId) {
-    if (!confirm('댓글을 삭제할까요?')) return;
-    try {
-      const r = await fetch(`${API}/reviews/${reviewId}/comments/${commentId}`, {
-        method: 'DELETE',
-        headers: authHeader()
-      });
-      if (r.ok) {
-        document.getElementById('comment-row-' + commentId)?.remove();
-        showToast('댓글이 삭제됐어요.');
-      } else {
-        showToast('삭제에 실패했어요.');
-      }
-    } catch (e) {
-      showToast('서버에 연결할 수 없어요.');
+    if(!content){
+
+        showToast("댓글을 입력해주세요.");
+
+        return;
+
     }
-  }
+
+    const response =
+        await fetch(
+
+            `${API}/reviews/${reviewId}/comments/${commentId}`,
+
+            {
+
+                method:"PATCH",
+
+                headers:{
+                    ...authHeader(),
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+                    content
+                })
+
+            }
+
+        );
+
+    if(response.ok){
+
+        showToast("댓글이 수정되었습니다.");
+
+        await loadComments();
+
+    }else{
+
+        showToast("수정 실패");
+
+    }
+
+}
+  
+  async function deleteComment(reviewId, commentId){
+
+    if(
+        !confirm("댓글을 삭제하시겠습니까?")
+    ){
+        return;
+    }
+
+    const response =
+        await fetch(
+
+            `${API}/reviews/${reviewId}/comments/${commentId}`,
+
+            {
+
+                method:"DELETE",
+
+                headers:authHeader()
+
+            }
+
+        );
+
+    if(response.ok){
+
+        showToast("댓글이 삭제되었습니다.");
+
+        await loadComments();
+
+    }else{
+
+        showToast("삭제 실패");
+
+    }
+
+}
 
   function getPosition() {
     return new Promise((resolve, reject) => {
@@ -1741,31 +1890,9 @@ async function loadComments(){
         data.data?.comments || [];
 
     box.innerHTML =
-        comments.map(c=>`
-
-        <div class="comment-item">
-
-            <div class="comment-user">
-
-                ${c.user.nickname}
-
-            </div>
-
-            <div>
-
-                ${c.content}
-
-            </div>
-
-            <div class="comment-date">
-
-                ${formatDate(c.created_at)}
-
-            </div>
-
-        </div>
-
-        `).join("");
+    comments
+        .map(c => renderCommentItem(c, currentCommentReviewId))
+        .join("");
 
 }
   
