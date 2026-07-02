@@ -8,6 +8,7 @@ let timerSec = 1200;
 let totalTimerSeconds = 1200;
 let allSearchResults = [];
 let displayedCount = 0;
+let nearbyRestaurantsCache = null;
 const PAGE_SIZE = 10;
 
 // ── 초기화 ────────────────────────────────

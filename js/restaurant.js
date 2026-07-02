@@ -1,6 +1,12 @@
 // ── 주변 라멘집 ───────────────────────────
 async function loadNearbyRestaurants() {
     const list = document.getElementById('restaurant-list');
+    // 💡 캐시 있으면 바로 꺼내서 사용
+    if (nearbyRestaurantsCache) {
+        renderRestaurantList(nearbyRestaurantsCache);
+        return;
+    }
+
     list.innerHTML = '<div class="loading">주변 라멘집을 불러오는 중...</div>';
     try {
         const pos = await getPosition();
