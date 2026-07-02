@@ -224,3 +224,23 @@ async function loadMyReviews() {
     }
 }
 
+
+async function toggleLike(reviewId, currentCount) {
+    const btn = document.getElementById('like-' + reviewId);
+    const isLiked = btn.classList.contains('liked');
+    try {
+        const r = await fetch(`${API}/reviews/${reviewId}/likes`, {
+            method: isLiked ? 'DELETE' : 'POST',
+            headers: authHeader()
+        });
+        if (r.ok || r.status === 201) {
+            btn.classList.toggle('liked');
+            const newCount = isLiked ? currentCount - 1 : currentCount + 1;
+            btn.innerHTML = `<i class="ti ti-${btn.classList.contains('liked') ? 'heart-filled' : 'heart'}"></i> ${newCount}`;
+            showToast(isLiked ? '추천을 취소했어요' : '추천했어요 ❤️');
+        }
+    } catch (e) {
+        showToast('로그인이 필요해요');
+    }
+}
+
