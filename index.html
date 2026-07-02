@@ -606,119 +606,16 @@ color:#888;
 </div>
 
 <script>
-  // ── 프로필 ────────────────────────────────
-  async function loadProfile() {
-    if (!currentUser) return;
-    document.getElementById('prof-name').textContent = currentUser.nickname;
-    document.getElementById('prof-email').textContent = currentUser.email;
-    document.getElementById('prof-avatar').textContent = currentUser.nickname[0];
-    try {
-      const r = await fetch(API + '/users/me', { headers: authHeader() });
-      if (r.ok) {
-        const d = await r.json();
-        document.getElementById('prof-name').textContent = d.data.nickname;
-        document.getElementById('prof-email').textContent = d.data.email;
-        document.getElementById('prof-avatar').textContent = d.data.nickname[0];
-      }
-    } catch (e) {}
 
-    loadProfileStats();
-  }
 
-  async function loadProfileStats() {
-    // 방문 인증 횟수
-    try {
-      const r = await fetch(API + '/users/me/visit-history?size=1', { headers: authHeader() });
-      const d = await r.json();
-      document.getElementById('prof-visits').textContent = d.data?.pagination?.total ?? '-';
-    } catch (e) {
-      document.getElementById('prof-visits').textContent = '-';
-    }
-
-    // 내 리뷰 수 + 받은 추천 합산
-    try {
-      const r = await fetch(API + '/users/me/reviews?size=100', { headers: authHeader() });
-      const d = await r.json();
-      const reviews = d.data?.reviews || [];
-      document.getElementById('prof-reviews').textContent = d.data?.pagination?.total ?? reviews.length;
-
-      const totalLikes = reviews.reduce((sum, rv) => sum + (rv.like_count || 0), 0);
-      document.getElementById('prof-likes').textContent = totalLikes;
-    } catch (e) {
-      document.getElementById('prof-reviews').textContent = '-';
-      document.getElementById('prof-likes').textContent = '-';
-    }
-  }
-
-   // ── 방문 기록 ─────────────────────────────
-  async function loadVisitHistory() {
-    const list = document.getElementById('visit-list');
-    list.innerHTML = '<div class="loading">불러오는 중...</div>';
-    try {
-      const r = await fetch(API + '/users/me/visit-history', { headers: authHeader() });
-      const d = await r.json();
-      const visits = d.data?.visit_history || [];
-      if (visits.length === 0) {
-        list.innerHTML = '<div class="empty">아직 방문 인증한 라멘집이 없어요 🍜</div>';
-        return;
-      }
-      list.innerHTML = visits.map(v => `
-        <div class="visit-item" onclick="openDetail(${JSON.stringify(v.restaurant).replace(/"/g, '&quot;')})">
-          <div class="rest-icon">🍜</div>
-          <div class="visit-info">
-            <div class="visit-name">${v.restaurant?.name || ''}</div>
-            <div class="visit-addr">${v.restaurant?.address || ''}</div>
-            <div class="visit-meta">방문 ${v.visit_count}회 · 최근 방문 ${formatDate(v.last_visited_at)}</div>
-          </div>
-          <i class="ti ti-chevron-right" style="color:var(--text3);font-size:18px"></i>
-        </div>
-      `).join('');
-    } catch (e) {
-      list.innerHTML = '<div class="empty">방문 기록을 불러올 수 없어요.</div>';
-    }
-  }
-
- 
-
-  // ── 프로필 수정 ───────────────────────────
-  function goEditProfile() {
-    document.getElementById('edit-nickname').value = currentUser?.nickname || '';
-    document.getElementById('edit-err').style.display = 'none';
-    navigate('editprofile');
-  }
-
-  async function submitProfileEdit() {
-    const nickname = document.getElementById('edit-nickname').value.trim();
-    if (!nickname) { showErr('edit-err', '닉네임을 입력해주세요.'); return; }
-    const btn = document.getElementById('edit-submit-btn');
-    btn.disabled = true; btn.textContent = '저장 중...';
-    try {
-      const r = await fetch(API + '/users/me', {
-        method: 'PATCH',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname })
-      });
-      const d = await r.json();
-      if (r.ok) {
-        currentUser.nickname = nickname;
-        showToast('프로필이 수정됐어요!');
-        navigate('profile');
-      } else {
-        showErr('edit-err', d.message || '수정에 실패했어요.');
-      }
-    } catch (e) {
-      showErr('edit-err', '서버에 연결할 수 없어요.');
-    } finally {
-      btn.disabled = false; btn.textContent = '저장하기';
-    }
-  }
-
+  
 </script>
   <script src="js/app.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/restaurant.js"></script>
   <script src="js/verify.js"></script>
+  <script src="js/profile.js"></script>
   <script src="js/comment.js"></script>
   <script src="js/review.js"></script>
 <!-- COMMENT MODAL -->
