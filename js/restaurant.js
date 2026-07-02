@@ -21,6 +21,7 @@ async function loadNearbyRestaurants() {
             list.innerHTML = '<div class="empty">주변에 등록된 라멘집이 없어요 🍜</div>';
             return;
         }
+        nearbyRestaurantsCache = restaurants;
         renderRestaurantList(restaurants);
     } catch (e) {
         list.innerHTML = '<div class="empty">위치 정보를 가져올 수 없어요.<br>브라우저 위치 권한을 허용해주세요.</div>';
