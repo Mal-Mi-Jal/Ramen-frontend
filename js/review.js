@@ -244,3 +244,26 @@ async function toggleLike(reviewId, currentCount) {
     }
 }
 
+// ── 리뷰 작성 ─────────────────────────────
+function goWrite() {
+    if (!token) { showToast('로그인이 필요해요'); return; }
+    editingReviewId = null;
+    selectedStar = 0; selectedRevisit = null;
+    document.getElementById('write-title').textContent = '리뷰 작성';
+    document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
+    document.getElementById('review-text').value = '';
+    document.querySelectorAll('.star-pick').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.revisit-btn').forEach(b => b.classList.remove('active'));
+    navigate('write');
+}
+
+function setStar(n) {
+    selectedStar = n;
+    document.querySelectorAll('.star-pick').forEach((b, i) => b.classList.toggle('on', i < n));
+}
+
+function setRevisit(btn, val) {
+    selectedRevisit = val;
+    document.querySelectorAll('.revisit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}

@@ -333,3 +333,18 @@ async function deleteComment(reviewId, commentId){
 
     }
 }
+
+
+function closeCommentModal(e){
+
+    if(
+        e &&
+        e.target !==
+        document.getElementById("comment-modal")
+    ) return;
+
+    document
+        .getElementById("comment-modal")
+        .style.display = "none";
+
+}
