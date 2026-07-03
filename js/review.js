@@ -108,6 +108,9 @@ async function deleteReview(reviewId) {
             headers: authHeader()
         });
        if (r.ok) {
+      myReviewsCache = null;
+    profileCache = null;
+    delete restaurantCache[currentRestaurant.id];
 
     showToast('리뷰가 삭제됐어요.');
 
@@ -171,22 +174,24 @@ async function submitReview() {
                 })
             });
             if (r.ok) {
+                myReviewsCache = null;
+                delete restaurantCache[currentRestaurant.id];
+            
+                showToast('리뷰가 수정됐어요! 🍜');
+            
+                editingReviewId = null;
+            
+                document.getElementById('write-title').textContent = '리뷰 작성';
+            
+                document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
+            
+                navigate('detail');
+            
+                await refreshCurrentRestaurantStats();
+            
+                await loadReviews(currentRestaurant.id);
 
-    showToast('리뷰가 수정됐어요! 🍜');
-
-    editingReviewId = null;
-
-    document.getElementById('write-title').textContent = '리뷰 작성';
-
-    document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
-
-    navigate('detail');
-
-    await refreshCurrentRestaurantStats();
-
-    await loadReviews(currentRestaurant.id);
-
-    }else {
+    }    else {
                 const d = await r.json();
                 showToast(d.message || '수정에 실패했어요.');
             }
@@ -211,12 +216,15 @@ async function submitReview() {
             })
         });
        if (r.ok || r.status === 201) {
+           myReviewsCache = null;
+            profileCache = null;
+            delete restaurantCache[currentRestaurant.id];
 
-    showToast('리뷰가 등록됐어요! 🍜');
+        showToast('리뷰가 등록됐어요! 🍜');
 
-    currentVerificationId = null;
+        currentVerificationId = null;
 
-    setTimeout(async () => {
+        setTimeout(async () => {
 
         navigate('detail');
 
@@ -237,6 +245,10 @@ async function submitReview() {
 
 // ── 내 리뷰 ───────────────────────────────
 async function loadMyReviews() {
+    if (myReviewsCache) {
+    renderMyReviews(myReviewsCache);
+    return;
+}
     const list = document.getElementById('my-review-list');
     list.innerHTML = '<div class="loading">불러오는 중...</div>';
     try {
@@ -244,11 +256,8 @@ async function loadMyReviews() {
         const r = await fetch(API + '/users/me/reviews', { headers: authHeader() });
         const d = await r.json();
         const reviews = d.data?.reviews || [];
-        if (reviews.length === 0) {
-            list.innerHTML = '<div class="empty">아직 작성한 리뷰가 없어요 🍜</div>';
-            return;
-        }
-        list.innerHTML = reviews.map(rv => renderReviewItem(rv, true)).join('');
+        myReviewsCache = reviews;
+        renderMyReviews(reviews);
     } catch (e) {
         list.innerHTML = '<div class="empty">내 리뷰를 불러올 수 없어요.<br>(백엔드 API 준비 중일 수 있어요)</div>';
     }
@@ -296,4 +305,22 @@ function setRevisit(btn, val) {
     selectedRevisit = val;
     document.querySelectorAll('.revisit-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+}
+
+function renderMyReviews(reviews){
+    const list =
+        document.getElementById("my-review-list");
+
+    if(reviews.length === 0){
+
+        list.innerHTML =
+            '<div class="empty">아직 작성한 리뷰가 없어요 🍜</div>';
+        return;
+    }
+
+    list.innerHTML =
+        reviews
+            .map(rv => renderReviewItem(rv, true))
+            .join("");
+
 }
