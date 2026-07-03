@@ -1,9 +1,21 @@
+function resetProfileStats() {
+
+    document.getElementById("prof-reviews").textContent = "...";
+
+    document.getElementById("prof-visits").textContent = "...";
+
+    document.getElementById("prof-likes").textContent = "...";
+
+}
+
 // ── 프로필 ────────────────────────────────
 async function loadProfile() {
     if (!currentUser) return;
     document.getElementById('prof-name').textContent = currentUser.nickname;
     document.getElementById('prof-email').textContent = currentUser.email;
     document.getElementById('prof-avatar').textContent = currentUser.nickname[0];
+
+    resetProfileStats();
     try {
         const r = await fetch(API + '/users/me', { headers: authHeader() });
         if (r.ok) {
