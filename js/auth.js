@@ -78,6 +78,7 @@ async function doLogout() {
         await fetch(API + '/auth/logout', { method: 'POST', headers: authHeader() });
     } catch (e) {}
     token = null; currentUser = null;
+    resetProfileStats();
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     showToast('로그아웃 되었습니다.');
