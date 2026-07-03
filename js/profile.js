@@ -39,30 +39,38 @@ async function loadProfile() {
 
 // ── 방문 기록 ─────────────────────────────
 async function loadVisitHistory() {
-    const list = document.getElementById('visit-list');
-    list.innerHTML = '<div class="loading">불러오는 중...</div>';
-    try {
-        const r = await fetch(API + '/users/me/visit-history', { headers: authHeader() });
-        const d = await r.json();
-        const visits = d.data?.visit_history || [];
-        if (visits.length === 0) {
-            list.innerHTML = '<div class="empty">아직 방문 인증한 라멘집이 없어요 🍜</div>';
-            return;
-        }
-        list.innerHTML = visits.map(v => `
-      <div class="visit-item" onclick="openDetail(${JSON.stringify(v.restaurant).replace(/"/g, '&quot;')})">
-        <div class="rest-icon">🍜</div>
-        <div class="visit-info">
-          <div class="visit-name">${v.restaurant?.name || ''}</div>
-          <div class="visit-addr">${v.restaurant?.address || ''}</div>
-          <div class="visit-meta">방문 ${v.visit_count}회 · 최근 방문 ${formatDate(v.last_visited_at)}</div>
-        </div>
-        <i class="ti ti-chevron-right" style="color:var(--text3);font-size:18px"></i>
-      </div>
-    `).join('');
-    } catch (e) {
-        list.innerHTML = '<div class="empty">방문 기록을 불러올 수 없어요.</div>';
+
+    if (visitHistoryCache) {
+        renderVisitHistory(visitHistoryCache);
+        return;
     }
+
+    const list = document.getElementById("visit-list");
+    list.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+    try {
+
+        const r = await fetch(
+            API + "/users/me/visit-history",
+            { headers: authHeader() }
+        );
+
+        const d = await r.json();
+
+        const visits =
+            d.data?.visit_history || [];
+
+        visitHistoryCache = visits;
+
+        renderVisitHistory(visits);
+
+    } catch (e) {
+
+        list.innerHTML =
+            '<div class="empty">방문 기록을 불러올 수 없어요.</div>';
+
+    }
+
 }
 
 // ── 프로필 수정 ───────────────────────────
@@ -118,5 +126,36 @@ function renderProfile(profile){
 
     document.getElementById("prof-likes").textContent =
         profile.received_like_count;
+
+}
+
+function renderVisitHistory(visits) {
+
+    const list =
+        document.getElementById("visit-list");
+
+    if (visits.length === 0) {
+
+        list.innerHTML =
+            '<div class="empty">아직 방문 인증한 라멘집이 없어요 🍜</div>';
+
+        return;
+
+    }
+
+    list.innerHTML = visits.map(v => `
+      <div class="visit-item" onclick="openDetail(${JSON.stringify(v.restaurant).replace(/"/g, '&quot;')})">
+        <div class="rest-icon">🍜</div>
+        <div class="visit-info">
+          <div class="visit-name">${v.restaurant?.name || ''}</div>
+          <div class="visit-addr">${v.restaurant?.address || ''}</div>
+          <div class="visit-meta">
+            방문 ${v.visit_count}회 · 최근 방문 ${formatDate(v.last_visited_at)}
+          </div>
+        </div>
+        <i class="ti ti-chevron-right"
+           style="color:var(--text3);font-size:18px"></i>
+      </div>
+    `).join("");
 
 }
