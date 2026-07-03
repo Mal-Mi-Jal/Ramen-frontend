@@ -10,6 +10,7 @@ let allSearchResults = [];
 let restaurantCache = {};
 let displayedCount = 0;
 let nearbyRestaurantsCache = null;
+let profileCache = null;
 const PAGE_SIZE = 10;
 
 // ── 초기화 ────────────────────────────────
