@@ -162,3 +162,28 @@ async function openDetail(rest) {
         showToast("식당 정보를 불러오지 못했습니다.");
     }
 }
+
+async function refreshCurrentRestaurantStats() {
+
+    if (!currentRestaurant) return;
+
+    const response =
+        await fetch(`${API}/restaurants/${currentRestaurant.id}`);
+
+    const data =
+        await response.json();
+
+    if (!response.ok || !data.success) return;
+
+    currentRestaurant = data.data;
+
+    document.getElementById("d-rating").textContent =
+        currentRestaurant.average_rating.toFixed(1);
+
+    document.getElementById("d-reviews").textContent =
+        currentRestaurant.review_count;
+
+    document.getElementById("d-revisit").textContent =
+        Math.round(currentRestaurant.revisit_rate) + "%";
+}
+
