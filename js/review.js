@@ -107,10 +107,19 @@ async function deleteReview(reviewId) {
             method: 'DELETE',
             headers: authHeader()
         });
-        if (r.ok) {
-            showToast('리뷰가 삭제됐어요.');
-            document.getElementById('review-item-' + reviewId)?.remove();
-        } else {
+       if (r.ok) {
+
+    showToast('리뷰가 삭제됐어요.');
+
+    document.getElementById(
+        'review-item-' + reviewId
+    )?.remove();
+
+    await refreshCurrentRestaurantStats();
+
+    await loadReviews(currentRestaurant.id);
+
+    } else {
             showToast('삭제에 실패했어요.');
         }
     } catch (e) {
@@ -162,13 +171,22 @@ async function submitReview() {
                 })
             });
             if (r.ok) {
-                showToast('리뷰가 수정됐어요! 🍜');
-                editingReviewId = null;
-                document.getElementById('write-title').textContent = '리뷰 작성';
-                document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
-                navigate('detail');
-                loadReviews(currentRestaurant.id);
-            } else {
+
+    showToast('리뷰가 수정됐어요! 🍜');
+
+    editingReviewId = null;
+
+    document.getElementById('write-title').textContent = '리뷰 작성';
+
+    document.getElementById('write-submit-btn').textContent = '리뷰 등록하기';
+
+    navigate('detail');
+
+    await refreshCurrentRestaurantStats();
+
+    await loadReviews(currentRestaurant.id);
+
+    }else {
                 const d = await r.json();
                 showToast(d.message || '수정에 실패했어요.');
             }
@@ -192,11 +210,23 @@ async function submitReview() {
                 revisit_intention: selectedRevisit
             })
         });
-        if (r.ok || r.status === 201) {
-            showToast('리뷰가 등록됐어요! 🍜');
-            currentVerificationId = null;
-            setTimeout(() => { navigate('detail'); loadReviews(currentRestaurant.id); }, 300);
-        } else {
+       if (r.ok || r.status === 201) {
+
+    showToast('리뷰가 등록됐어요! 🍜');
+
+    currentVerificationId = null;
+
+    setTimeout(async () => {
+
+        navigate('detail');
+
+        await refreshCurrentRestaurantStats();
+
+        await loadReviews(currentRestaurant.id);
+
+    }, 300);
+
+    } else {
             const d = await r.json();
             showToast(d.message || '리뷰 등록에 실패했어요');
         }
