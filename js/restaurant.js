@@ -109,6 +109,18 @@ async function searchRestaurants() {
 }
 
 async function openDetail(rest) {
+    if (restaurantCache[rest.id]) {
+
+        currentRestaurant = restaurantCache[rest.id];
+
+        renderRestaurantDetail();
+
+        loadReviews(rest.id);
+
+        navigate("detail");
+
+        return;
+    }
     try {
         const r = await fetch(`${API}/restaurants/${rest.id}`);
         const d = await r.json();
@@ -116,45 +128,10 @@ async function openDetail(rest) {
             showToast("식당 정보를 불러오지 못했습니다.");
             return;
         }
+        
         currentRestaurant = d.data;
-        document.getElementById("detail-name").textContent = currentRestaurant.name;
-        document.getElementById("detail-addr").textContent = currentRestaurant.address || "";
-        document.getElementById("d-rating").textContent = currentRestaurant.average_rating.toFixed(1);
-        document.getElementById("d-reviews").textContent = currentRestaurant.review_count;
-        document.getElementById("d-revisit").textContent = Math.round(currentRestaurant.revisit_rate) + "%";
-
-        const phoneRow = document.getElementById("detail-phone-row");
-        if (currentRestaurant.phone) {
-            document.getElementById("detail-phone-link").textContent = currentRestaurant.phone;
-            document.getElementById("detail-phone-link").href = "tel:" + currentRestaurant.phone;
-            phoneRow.style.display = "flex";
-        } else {
-            phoneRow.style.display = "none";
-        }
-
-        const lat = currentRestaurant.latitude;
-        const lng = currentRestaurant.longitude;
-        if (lat && lng) {
-            const mapEl = document.getElementById("detail-map");
-            mapEl.innerHTML = "";
-            const targetRestaurantId = currentRestaurant.id;
-            kakao.maps.load(function() {
-                if (!currentRestaurant || currentRestaurant.id !== targetRestaurantId) return;
-                const mapOption = { center: new kakao.maps.LatLng(lat, lng), level: 4 };
-                const map = new kakao.maps.Map(mapEl, mapOption);
-                const markerPosition = new kakao.maps.LatLng(lat, lng);
-                const marker = new kakao.maps.Marker({ position: markerPosition });
-                marker.setMap(map);
-                setTimeout(() => { map.relayout(); map.setCenter(markerPosition); }, 0);
-            });
-            document.getElementById("detail-kakao-link").href =
-                currentRestaurant.kakao_place_id
-                    ? `https://place.map.kakao.com/${currentRestaurant.kakao_place_id}`
-                    : `https://map.kakao.com/?q=${encodeURIComponent(currentRestaurant.name)}`;
-            document.getElementById("detail-extra").style.display = "block";
-        } else {
-            document.getElementById("detail-extra").style.display = "none";
-        }
+        restaurantCache[currentRestaurant.id] = currentRestaurant;
+        renderRestaurantDetail();
         navigate("detail");
         loadReviews(currentRestaurant.id);
     } catch (e) {
@@ -185,5 +162,57 @@ async function refreshCurrentRestaurantStats() {
 
     document.getElementById("d-revisit").textContent =
         Math.round(currentRestaurant.revisit_rate) + "%";
+}
+
+function renderRestaurantDetail(){
+
+    document.getElementById("detail-name").textContent =
+        currentRestaurant.name;
+
+    document.getElementById("detail-addr").textContent =
+        currentRestaurant.address || "";
+    
+    document.getElementById("d-rating").textContent = 
+        currentRestaurant.average_rating.toFixed(1);
+    
+    document.getElementById("d-reviews").textContent = 
+        currentRestaurant.review_count;
+    
+    document.getElementById("d-revisit").textContent = 
+        Math.round(currentRestaurant.revisit_rate) + "%";
+
+    const phoneRow = document.getElementById("detail-phone-row");
+        if (currentRestaurant.phone) {
+            document.getElementById("detail-phone-link").textContent = currentRestaurant.phone;
+            document.getElementById("detail-phone-link").href = "tel:" + currentRestaurant.phone;
+            phoneRow.style.display = "flex";
+        } else {
+            phoneRow.style.display = "none";
+        }
+
+    const lat = currentRestaurant.latitude;
+        const lng = currentRestaurant.longitude;
+        if (lat && lng) {
+            const mapEl = document.getElementById("detail-map");
+            mapEl.innerHTML = "";
+            const targetRestaurantId = currentRestaurant.id;
+            kakao.maps.load(function() {
+                if (!currentRestaurant || currentRestaurant.id !== targetRestaurantId) return;
+                const mapOption = { center: new kakao.maps.LatLng(lat, lng), level: 4 };
+                const map = new kakao.maps.Map(mapEl, mapOption);
+                const markerPosition = new kakao.maps.LatLng(lat, lng);
+                const marker = new kakao.maps.Marker({ position: markerPosition });
+                marker.setMap(map);
+                setTimeout(() => { map.relayout(); map.setCenter(markerPosition); }, 0);
+            });
+            document.getElementById("detail-kakao-link").href =
+                currentRestaurant.kakao_place_id
+                    ? `https://place.map.kakao.com/${currentRestaurant.kakao_place_id}`
+                    : `https://map.kakao.com/?q=${encodeURIComponent(currentRestaurant.name)}`;
+            document.getElementById("detail-extra").style.display = "block";
+        } else {
+            document.getElementById("detail-extra").style.display = "none";
+        }
+    
 }
 
