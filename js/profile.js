@@ -8,36 +8,32 @@ async function loadProfile() {
         const r = await fetch(API + '/users/me', { headers: authHeader() });
         if (r.ok) {
             const d = await r.json();
-            document.getElementById('prof-name').textContent = d.data.nickname;
-            document.getElementById('prof-email').textContent = d.data.email;
-            document.getElementById('prof-avatar').textContent = d.data.nickname[0];
+            document.getElementById("prof-name").textContent =
+                d.data.nickname;
+            
+            document.getElementById("prof-email").textContent =
+                d.data.email;
+            
+            document.getElementById("prof-avatar").textContent =
+                d.data.nickname[0];
+            
+            document.getElementById("prof-reviews").textContent =
+                d.data.review_count;
+            
+            document.getElementById("prof-visits").textContent =
+                d.data.visit_count;
+            
+            document.getElementById("prof-likes").textContent =
+                d.data.received_like_count;
         }
-    } catch (e) {}
-    loadProfileStats();
-}
-
-async function loadProfileStats() {
-    // 방문 인증 횟수
-    try {
-        const r = await fetch(API + '/users/me/visit-history?size=1', { headers: authHeader() });
-        const d = await r.json();
-        document.getElementById('prof-visits').textContent = d.data?.pagination?.total ?? '-';
     } catch (e) {
-        document.getElementById('prof-visits').textContent = '-';
-    }
+        console.error("프로필 로딩 실패", e);
 
-    // 내 리뷰 수 + 받은 추천 합산
-    try {
-        const r = await fetch(API + '/users/me/reviews?size=100', { headers: authHeader() });
-        const d = await r.json();
-        const reviews = d.data?.reviews || [];
-        document.getElementById('prof-reviews').textContent = d.data?.pagination?.total ?? reviews.length;
-        const totalLikes = reviews.reduce((sum, rv) => sum + (rv.like_count || 0), 0);
-        document.getElementById('prof-likes').textContent = totalLikes;
-    } catch (e) {
-        document.getElementById('prof-reviews').textContent = '-';
-        document.getElementById('prof-likes').textContent = '-';
+    document.getElementById("prof-reviews").textContent = "-";
+    document.getElementById("prof-visits").textContent = "-";
+    document.getElementById("prof-likes").textContent = "-";
     }
+    
 }
 
 // ── 방문 기록 ─────────────────────────────
