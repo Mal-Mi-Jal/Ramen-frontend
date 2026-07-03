@@ -86,6 +86,7 @@ async function submitProfileEdit() {
         const d = await r.json();
         if (r.ok) {
             currentUser.nickname = nickname;
+            profileCache = null;
             showToast('프로필이 수정됐어요!');
             navigate('profile');
         } else {
