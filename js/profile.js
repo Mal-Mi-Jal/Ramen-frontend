@@ -14,29 +14,18 @@ async function loadProfile() {
     document.getElementById('prof-name').textContent = currentUser.nickname;
     document.getElementById('prof-email').textContent = currentUser.email;
     document.getElementById('prof-avatar').textContent = currentUser.nickname[0];
-
+    if(profileCache){
+        renderProfile(profileCache);
+        return;
+    }
     resetProfileStats();
     try {
         const r = await fetch(API + '/users/me', { headers: authHeader() });
         if (r.ok) {
             const d = await r.json();
-            document.getElementById("prof-name").textContent =
-                d.data.nickname;
-            
-            document.getElementById("prof-email").textContent =
-                d.data.email;
-            
-            document.getElementById("prof-avatar").textContent =
-                d.data.nickname[0];
-            
-            document.getElementById("prof-reviews").textContent =
-                d.data.review_count;
-            
-            document.getElementById("prof-visits").textContent =
-                d.data.visit_count;
-            
-            document.getElementById("prof-likes").textContent =
-                d.data.received_like_count;
+            profileCache = d.data;
+
+            renderProfile(profileCache);
         }
     } catch (e) {
         console.error("프로필 로딩 실패", e);
@@ -107,4 +96,26 @@ async function submitProfileEdit() {
     } finally {
         btn.disabled = false; btn.textContent = '저장하기';
     }
+}
+
+function renderProfile(profile){
+
+    document.getElementById("prof-name").textContent =
+        profile.nickname;
+
+    document.getElementById("prof-email").textContent =
+        profile.email;
+
+    document.getElementById("prof-avatar").textContent =
+        profile.nickname[0];
+
+    document.getElementById("prof-reviews").textContent =
+        profile.review_count;
+
+    document.getElementById("prof-visits").textContent =
+        profile.visit_count;
+
+    document.getElementById("prof-likes").textContent =
+        profile.received_like_count;
+
 }
