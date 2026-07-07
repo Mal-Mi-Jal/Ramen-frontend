@@ -295,7 +295,7 @@ async function goPendingReview(
         id: restaurantId
     });
 
-    navigate("write");
+    goWrite();
 
 }
 
