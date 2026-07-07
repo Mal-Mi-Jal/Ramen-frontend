@@ -346,30 +346,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pending-review-box{
 
     margin:16px;
-
     padding:18px;
+    border-radius:18px;
 
-    border-radius:16px;
+    background:#FFF8ED;
 
-    background:#FFF8E8;
+    border:1px solid #F6D48A;
 
-    border:1px solid #F5D48A;
+    box-shadow:0 2px 8px rgba(0,0,0,.03);
 
 }
 
 .pending-review-header{
 
     display:flex;
-
     align-items:center;
-
     gap:8px;
 
+    font-size:15px;
     font-weight:700;
 
-    font-size:15px;
-
-    color:#5B4300;
+    color:#6B4A00;
 
     margin-bottom:14px;
 
@@ -378,17 +375,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pending-review-item{
 
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
+
+    padding:12px 0;
+}
+
+.pending-review-item:not(:last-child){
+
+    border-bottom:1px solid rgba(0,0,0,.06);
 
 }
 
 .pending-review-name{
 
     font-weight:600;
-
     font-size:15px;
 
     color:var(--text1);
@@ -397,11 +398,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .pending-review-days{
 
-    margin-top:4px;
+    margin-top:5px;
 
     font-size:12px;
 
     color:var(--text3);
+
+}
+
+.pending-review-days.today{
+
+    color:#E53935;
+
+    font-weight:700;
 
 }
 
@@ -421,7 +430,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     cursor:pointer;
 
-    transition:.2s;
+    transition:.18s;
 
 }
 
