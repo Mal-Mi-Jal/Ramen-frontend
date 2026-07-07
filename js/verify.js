@@ -57,33 +57,75 @@ function updateTimerUI() {
 }
 
 function startVerificationTimer(seconds) {
+
     totalTimerSeconds = seconds;
     timerSec = seconds;
+
     updateTimerUI();
+
     clearInterval(timerInterval);
+
     timerInterval = setInterval(() => {
+
         timerSec = Math.max(0, timerSec - 1);
+
         updateTimerUI();
+
         if (timerSec === 0) {
+
             clearInterval(timerInterval);
-            document.getElementById("mstep2").classList.add("done");
-            document.getElementById("mstep2").innerHTML = '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
-            document.getElementById("verify-cta").style.display = "block";
+
+            (async () => {
+
+                try {
+
+                    const pos = await getPosition();
+
+                    const r = await fetch(
+                        `${API}/verifications/${currentVerificationId}/verify`,
+                        {
+                            method: "POST",
+                            headers: {
+                                ...authHeader(),
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                latitude: pos.coords.latitude,
+                                longitude: pos.coords.longitude
+                            })
+                        }
+                    );
+
+                    const d = await r.json();
+
+                    if (!r.ok || !d.success) {
+                        showToast(d.message ?? "방문 인증에 실패했습니다.");
+                        return;
+                    }
+
+                    document.getElementById("mstep2").classList.add("done");
+                    document.getElementById("mstep2").innerHTML =
+                        '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
+
+                    document.getElementById("verify-cta").style.display = "block";
+
+                } catch (e) {
+
+                    console.error(e);
+
+                    showToast("방문 인증에 실패했습니다.");
+
+                }
+
+            })();
+
         }
+
     }, 1000);
+
 }
 
 async function completeVerify() {
-    if (currentVerificationId) {
-        try {
-            const pos = await getPosition();
-            await fetch(`${API}/verifications/${currentVerificationId}/verify`, {
-                method: 'POST',
-                headers: { ...authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
-            });
-        } catch (e) {}
-    }
     closeVerify();
     goWrite();
 }
