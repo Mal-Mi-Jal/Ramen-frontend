@@ -195,6 +195,7 @@ async function loadPendingReviews(){
             return;
 
         }
+        box.style.display = "block";
 
         box.innerHTML =
 
