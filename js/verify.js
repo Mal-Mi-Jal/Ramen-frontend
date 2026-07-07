@@ -103,7 +103,7 @@ function openPendingReviewModal(reviews){
 
 🍜 ${rv.restaurant_name}
 
-리뷰를 작성하러 이동할까요?
+리뷰를 작성하러 이동할까요?`
 
     )){
 
