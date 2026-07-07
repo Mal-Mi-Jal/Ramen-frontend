@@ -205,7 +205,7 @@ async function loadPendingReviews(){
 
     <span>
 
-        작성하지 않은 리뷰가 있어요
+        작성 가능한 리뷰 (${reviews.length})
 
     </span>
 
@@ -213,39 +213,53 @@ async function loadPendingReviews(){
 
 ` +
 
-reviews.map(rv=>`
+reviews.map(rv=>{
 
-<div class="pending-review-item">
+    const isToday =
+        rv.days_left <= 0;
 
-    <div>
+    return `
 
-        <div class="pending-review-name">
+    <div class="pending-review-item">
 
-            ${rv.restaurant_name}
+        <div>
+
+            <div class="pending-review-name">
+
+                ${rv.restaurant_name}
+
+            </div>
+
+            <div class="pending-review-days ${isToday ? "today" : ""}">
+
+                ${
+                    isToday
+                    ? "⚠️ 오늘 마감"
+                    : `⏳ ${rv.days_left}일 남음`
+                }
+
+            </div>
 
         </div>
 
-        <div class="pending-review-days">
+        <button
 
-            ${rv.days_left}일 안에 리뷰를 작성해주세요.
+            class="pending-review-btn"
 
-        </div>
+            onclick="goPendingReview(
+                '${rv.verification_id}',
+                '${rv.restaurant_id}'
+            )">
+
+            리뷰 작성
+
+        </button>
 
     </div>
 
-    <button
+`;
 
-        class="pending-review-btn"
-
-        onclick="goPendingReview('${rv.verification_id}','${rv.restaurant_id}')">
-
-        리뷰 작성
-
-    </button>
-
-</div>
-
-`).join("");
+}).join("");
         
     }catch(e){
 
