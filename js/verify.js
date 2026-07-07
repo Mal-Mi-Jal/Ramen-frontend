@@ -105,7 +105,6 @@ function openPendingReviewModal(reviews){
 
 리뷰를 작성하러 이동할까요?
 
-취소를 누르면 새 인증을 진행합니다.`
     )){
 
         goPendingReview(
