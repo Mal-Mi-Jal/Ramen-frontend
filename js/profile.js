@@ -16,6 +16,7 @@ async function loadProfile() {
     document.getElementById('prof-avatar').textContent = currentUser.nickname[0];
     if(profileCache){
         renderProfile(profileCache);
+        await loadPendingReviews();
         return;
     }
     resetProfileStats();
@@ -26,6 +27,7 @@ async function loadProfile() {
             profileCache = d.data;
 
             renderProfile(profileCache);
+            await loadPendingReviews();
         }
     } catch (e) {
         console.error("프로필 로딩 실패", e);
@@ -159,3 +161,98 @@ function renderVisitHistory(visits) {
     `).join("");
 
 }
+
+async function loadPendingReviews(){
+
+    try{
+
+        const r =
+            await fetch(
+
+                API + "/users/me/pending-review",
+
+                {
+                    headers:authHeader()
+                }
+
+            );
+
+        const d =
+            await r.json();
+
+        const box =
+            document.getElementById(
+                "pending-review-box"
+            );
+
+        const reviews =
+            d.data || [];
+
+        if(reviews.length===0){
+
+            box.style.display="none";
+
+            return;
+
+        }
+
+        box.innerHTML =
+
+`
+<div class="pending-review-header">
+
+    🍜
+
+    <span>
+
+        작성하지 않은 리뷰가 있어요
+
+    </span>
+
+</div>
+
+` +
+
+reviews.map(rv=>`
+
+<div class="pending-review-item">
+
+    <div>
+
+        <div class="pending-review-name">
+
+            ${rv.restaurant_name}
+
+        </div>
+
+        <div class="pending-review-days">
+
+            ${rv.days_left}일 안에 리뷰를 작성해주세요.
+
+        </div>
+
+    </div>
+
+    <button
+
+        class="pending-review-btn"
+
+        onclick="goPendingReview('${rv.verification_id}','${rv.restaurant_id}')">
+
+        리뷰 작성
+
+    </button>
+
+</div>
+
+`).join("");
+        
+    }catch(e){
+
+        console.error(e);
+
+    }
+
+}
+
+
