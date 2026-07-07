@@ -5,6 +5,24 @@ async function openVerify() {
         return;
     }
     try {
+        const pendingRes = await fetch(
+            API + "/users/me/pending-review",
+            {
+                headers: authHeader()
+            }
+        );
+
+        const pendingData = await pendingRes.json();
+
+        const pending = pendingData.data || [];
+
+        if (pending.length > 0) {
+
+            openPendingReviewModal(pending);
+
+            return;
+
+        }
         const currentResponse = await fetch(
             `${API}/verifications/current`,
             { headers: authHeader() }
@@ -21,31 +39,7 @@ async function openVerify() {
             startVerificationTimer(currentData.data.remaining_seconds);
             return;
         }
-
-        // 진행중인 인증 없음
-        const pos = await getPosition();
-        const enterResponse = await fetch(`${API}/verifications/enter`, {
-            method: "POST",
-            headers: { ...authHeader(), "Content-Type": "application/json" },
-            body: JSON.stringify({
-                restaurant_id: currentRestaurant.id,
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude
-            })
-        });
-        const enterData = await enterResponse.json();
-
-        if (!enterResponse.ok || !enterData.success) {
-            showToast(enterData.message ?? "방문 인증을 시작할 수 없습니다.");
-            return;
-        }
-
-        currentVerificationId = enterData.data.verification_id;
-        document.getElementById("verify-modal").style.display = "flex";
-        document.getElementById("mstep2").classList.remove("done");
-        document.getElementById("mstep2").innerHTML = '<i class="ti ti-clock"></i> 체류 대기 중...';
-        document.getElementById("verify-cta").style.display = "none";
-        startVerificationTimer(enterData.data.required_stay_seconds);
+        await startNewVerification();
 
     } catch (e) {
         console.error(e);
@@ -98,4 +92,94 @@ function closeVerify(e) {
     if (e && e.target !== document.getElementById('verify-modal')) return;
     clearInterval(timerInterval);
     document.getElementById('verify-modal').style.display = 'none';
+}
+
+function openPendingReviewModal(reviews){
+
+    const rv = reviews[0];
+
+    if(confirm(
+`아직 작성하지 않은 리뷰가 있습니다.
+
+🍜 ${rv.restaurant_name}
+
+리뷰를 작성하러 이동할까요?
+
+취소를 누르면 새 인증을 진행합니다.`
+    )){
+
+        goPendingReview(
+            rv.verification_id,
+            rv.restaurant_id
+        );
+
+    }
+
+}
+
+async function startNewVerification(){
+
+    const pos = await getPosition();
+
+    const enterResponse = await fetch(
+        `${API}/verifications/enter`,
+        {
+            method:"POST",
+            headers:{
+                ...authHeader(),
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+
+                restaurant_id:
+                    currentRestaurant.id,
+
+                latitude:
+                    pos.coords.latitude,
+
+                longitude:
+                    pos.coords.longitude
+
+            })
+        }
+    );
+
+    const enterData =
+        await enterResponse.json();
+
+    if(!enterResponse.ok || !enterData.success){
+
+        showToast(
+            enterData.message ??
+            "방문 인증을 시작할 수 없습니다."
+        );
+
+        return;
+
+    }
+
+    currentVerificationId =
+        enterData.data.verification_id;
+
+    document.getElementById(
+        "verify-modal"
+    ).style.display="flex";
+
+    document.getElementById(
+        "mstep2"
+    ).classList.remove("done");
+
+    document.getElementById(
+        "mstep2"
+    ).innerHTML =
+        '<i class="ti ti-clock"></i> 체류 대기 중...';
+
+    document.getElementById(
+        "verify-cta"
+    ).style.display="none";
+
+    startVerificationTimer(
+        enterData.data.required_stay_seconds
+    );
+
 }
