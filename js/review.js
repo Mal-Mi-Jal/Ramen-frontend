@@ -283,6 +283,22 @@ async function toggleLike(reviewId, currentCount) {
     }
 }
 
+async function goPendingReview(
+    verificationId,
+    restaurantId
+){
+
+    currentVerificationId =
+        verificationId;
+
+    await openDetail({
+        id: restaurantId
+    });
+
+    navigate("write");
+
+}
+
 // ── 리뷰 작성 ─────────────────────────────
 function goWrite() {
     if (!token) { showToast('로그인이 필요해요'); return; }
