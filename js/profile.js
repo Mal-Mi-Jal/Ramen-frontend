@@ -261,22 +261,14 @@ reviews.map(rv=>{
 }
 
 async function loadFavorites(){
-
     try{
-
         const r =
             await fetch(
-
                 API + "/users/me/favorites",
-
                 {
-
                     headers:authHeader()
-
                 }
-
             );
-
         const d =
             await r.json();
 
@@ -289,56 +281,46 @@ async function loadFavorites(){
             d.data || [];
 
         if(favorites.length===0){
-
             list.innerHTML =
                 `
                 <div class="empty">
-
                     ❤️ 아직 즐겨찾기가 없습니다.
-
                 </div>
                 `;
-
             return;
 
         }
+       list.innerHTML = favorites.map(f=>`
 
-        list.innerHTML =
+<div class="favorite-card"
+     onclick="openFavorite('${f.restaurantId}')">
 
-favorites.map(f=>`
-
-<div
-
-class="restaurant-card"
-
-onclick="openDetail({
-
-id:'${f.restaurantId}'
-
-})">
-
-    <div class="restaurant-name">
-
-        ${f.restaurantName}
-
+    <div class="favorite-thumb">
+        ${
+            f.thumbnail
+            ? `<img src="${f.thumbnail}" alt="">`
+            : "🍜"
+        }
     </div>
 
-    <div class="restaurant-address">
+    <div class="favorite-info">
 
-        ${f.address}
+        <div class="favorite-name">
+            ${f.restaurantName}
+        </div>
+
+        <div class="favorite-address">
+            ${f.address}
+        </div>
 
     </div>
 
 </div>
 
 `).join("");
-
     }catch(e){
-
         console.error(e);
-
     }
-
 }
 
 async function openFavorite(id) {
