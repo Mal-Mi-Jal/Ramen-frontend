@@ -118,7 +118,12 @@ async function openDetail(rest) {
         return;
     }
     try {
-        const r = await fetch(`${API}/restaurants/${rest.id}`);
+        const r = await fetch(
+    `${API}/restaurants/${rest.id}`,
+    {
+        headers: authHeader()
+    }
+);
         const d = await r.json();
         console.log(d.data);                                    // 하고 지우자
         console.log("isFavorite =", d.data.isFavorite);
