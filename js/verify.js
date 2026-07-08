@@ -114,7 +114,7 @@ async function checkAndStartPolling() {
         const r = await fetch(`${API}/verifications/current`, { headers: authHeader() });
         const d = await r.json();
         if (d.data && d.data.status === 'pending') {
-            const remaining = d.data.remaining_seconds || 0;
+            const remaining = d.data.remainingSeconds || 0;
             currentVerificationId = d.data.verification_id;
             if (remaining <= 0) {
                 // 이미 시간 지났으면 바로 폴링
