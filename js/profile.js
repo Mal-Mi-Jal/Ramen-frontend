@@ -28,6 +28,7 @@ async function loadProfile() {
 
             renderProfile(profileCache);
             await loadPendingReviews();
+            checkAndStartPolling();
         }
     } catch (e) {
         console.error("프로필 로딩 실패", e);
