@@ -61,6 +61,7 @@ function navigate(name) {
     if (name === 'profile') loadProfile();
     if (name === 'visits') loadVisitHistory();
     if (name === 'myreviews') loadMyReviews();
+    if (name === 'favorites') loadFavorites();
 }
 
 // 드롭다운 외부 클릭 시 닫기
