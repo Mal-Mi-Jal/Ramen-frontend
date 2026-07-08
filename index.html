@@ -115,6 +115,7 @@
     <button class="fab" onclick="goWrite()"><i class="ti ti-pencil"></i></button>
   </div>
 
+
   <!-- WRITE -->
   <div class="screen" id="screen-write">
     <div class="page-header">
@@ -168,6 +169,7 @@
     <div class="menu-item" onclick="navigate('visits')"><i class="ti ti-history"></i><span>방문 기록</span><i class="ti ti-chevron-right arr"></i></div>
     <div class="menu-item" onclick="navigate('myreviews')"><i class="ti ti-star"></i><span>내 리뷰</span><i class="ti ti-chevron-right arr"></i></div>
     <div class="menu-item" onclick="goEditProfile()"><i class="ti ti-user-edit"></i><span>프로필 수정</span><i class="ti ti-chevron-right arr"></i></div>
+    <div class="menu-item" onclick="navigate('favorites')"><i class="ti ti-heart"></i><span>즐겨찾기</span><i class="ti ti-chevron-right arr"></i></div>
     <button class="logout-btn" onclick="doLogout()">로그아웃</button>
   </div>
 
@@ -200,6 +202,34 @@
     <p class="err-msg" id="edit-err"></p>
     <button class="submit-btn" id="edit-submit-btn" onclick="submitProfileEdit()">저장하기</button>
   </div>
+</div>
+
+  <!-- FAVORITES -->
+
+<div class="screen" id="screen-favorites">
+
+    <div class="topbar">
+
+        <button class="icon-btn" onclick="navigate('profile')">
+
+            <i class="ti ti-arrow-left"></i>
+
+        </button>
+
+        <div class="title">즐겨찾기</div>
+
+    </div>
+
+    <div id="favorite-list">
+
+        <div class="loading">
+
+            불러오는 중...
+
+        </div>
+
+    </div>
+
 </div>
 
   <!-- COMMENT MODAL -->
