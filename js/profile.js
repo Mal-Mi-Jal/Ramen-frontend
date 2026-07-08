@@ -17,6 +17,7 @@ async function loadProfile() {
     if(profileCache){
         renderProfile(profileCache);
         await loadPendingReviews();
+        checkAndStartPolling();
         return;
     }
     resetProfileStats();
