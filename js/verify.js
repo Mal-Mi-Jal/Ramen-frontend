@@ -57,72 +57,58 @@ function updateTimerUI() {
 }
 
 function startVerificationTimer(seconds) {
-
     totalTimerSeconds = seconds;
     timerSec = seconds;
-
     updateTimerUI();
-
     clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
-
         timerSec = Math.max(0, timerSec - 1);
-
         updateTimerUI();
 
         if (timerSec === 0) {
-
             clearInterval(timerInterval);
+            // 💡 타이머 끝나면 백엔드 상태 폴링 시작
+            pollVerificationStatus();
+        }
+    }, 1000);
+}
 
-            (async () => {
+async function pollVerificationStatus() {
+    // 최대 2분간 5초마다 폴링
+    let attempts = 0;
+    const maxAttempts = 24;
 
-                try {
+    const poll = setInterval(async () => {
+        attempts++;
+        try {
+            const r = await fetch(`${API}/verifications/current`, { headers: authHeader() });
+            const d = await r.json();
 
-                    const pos = await getPosition();
+            // 💡 PENDING이 없어졌거나 (스케줄러가 VERIFIED로 바꿈) 인증 완료
+            if (!d.data || d.data.status === 'verified') {
+                clearInterval(poll);
+                document.getElementById("mstep2").classList.add("done");
+                document.getElementById("mstep2").innerHTML =
+                    '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
+                document.getElementById("verify-cta").style.display = "block";
 
-                    const r = await fetch(
-                        `${API}/verifications/${currentVerificationId}/verify`,
-                        {
-                            method: "POST",
-                            headers: {
-                                ...authHeader(),
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                latitude: pos.coords.latitude,
-                                longitude: pos.coords.longitude
-                            })
-                        }
-                    );
-
-                    const d = await r.json();
-
-                    if (!r.ok || !d.success) {
-                        showToast(d.message ?? "방문 인증에 실패했습니다.");
-                        return;
-                    }
-
-                    document.getElementById("mstep2").classList.add("done");
-                    document.getElementById("mstep2").innerHTML =
-                        '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
-
-                    document.getElementById("verify-cta").style.display = "block";
-
-                } catch (e) {
-
-                    console.error(e);
-
-                    showToast("방문 인증에 실패했습니다.");
-
+                // 💡 모달이 닫혀있으면 토스트 알림으로 알려주기
+                const modal = document.getElementById("verify-modal");
+                if (modal.style.display === 'none') {
+                    showToast('✅ 방문 인증이 완료됐어요! 리뷰를 남겨보세요.');
                 }
-
-            })();
-
+                return;
+            }
+        } catch (e) {
+            console.error(e);
         }
 
-    }, 1000);
-
+        if (attempts >= maxAttempts) {
+            clearInterval(poll);
+            showToast('인증 상태 확인에 실패했어요. 다시 시도해주세요.');
+        }
+    }, 5000);
 }
 
 async function completeVerify() {
