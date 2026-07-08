@@ -52,7 +52,7 @@ function navigate(name) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     const nav = document.getElementById('bottom-nav');
-    const hideNavScreens = ['auth', 'write', 'visits', 'myreviews', 'editprofile'];
+    const hideNavScreens = ['auth', 'write', 'visits', 'myreviews', 'editprofile','favorites'];
     nav.style.display = hideNavScreens.includes(name) ? 'none' : 'flex';
     ['home', 'profile'].forEach(n => {
         document.getElementById('nav-' + n)?.classList.toggle('active', n === name);
