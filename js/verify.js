@@ -92,12 +92,7 @@ async function pollVerificationStatus() {
                 document.getElementById("mstep2").innerHTML =
                     '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
                 document.getElementById("verify-cta").style.display = "block";
-
-                // 💡 모달이 닫혀있으면 토스트 알림으로 알려주기
-                const modal = document.getElementById("verify-modal");
-                if (modal.style.display === 'none') {
-                    showToast('✅ 방문 인증이 완료됐어요! 리뷰를 남겨보세요.');
-                }
+                showToast('✅ 방문 인증이 완료됐어요! 리뷰를 남겨보세요.');
                 return;
             }
         } catch (e) {
