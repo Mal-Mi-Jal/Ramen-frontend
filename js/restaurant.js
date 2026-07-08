@@ -112,13 +112,9 @@ async function openDetail(rest) {
     if (restaurantCache[rest.id]) {
 
         currentRestaurant = restaurantCache[rest.id];
-
-        renderRestaurantDetail();
-
-        loadReviews(rest.id);
-
         navigate("detail");
-
+        renderRestaurantDetail();
+        loadReviews(rest.id);
         return;
     }
     try {
@@ -131,8 +127,8 @@ async function openDetail(rest) {
         
         currentRestaurant = d.data;
         restaurantCache[currentRestaurant.id] = currentRestaurant;
-        renderRestaurantDetail();
         navigate("detail");
+        renderRestaurantDetail();
         loadReviews(currentRestaurant.id);
     } catch (e) {
         console.error(e);
