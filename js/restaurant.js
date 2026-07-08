@@ -120,6 +120,8 @@ async function openDetail(rest) {
     try {
         const r = await fetch(`${API}/restaurants/${rest.id}`);
         const d = await r.json();
+        console.log(d.data);                                    // 하고 지우자
+        console.log("isFavorite =", d.data.isFavorite);
         if (!r.ok || !d.success) {
             showToast("식당 정보를 불러오지 못했습니다.");
             return;
