@@ -305,6 +305,52 @@ function goWrite() {
     navigate('write');
 }
 
+function updateFavoriteButton(){
+    const btn =
+        document.getElementById("favorite-btn");
+    if(!btn) return;
+    if(isFavorite){
+        btn.classList.add("active");
+        btn.textContent = "❤️ 저장됨";
+    }else{
+        btn.classList.remove("active");
+        btn.textContent = "🤍 저장";
+    }
+}
+
+async function toggleFavorite(){
+    if(!token){
+        showToast("로그인이 필요해요");
+        return;
+    }
+    try{
+        const r =
+            await fetch(
+                `${API}/restaurants/${currentRestaurant.id}/favorite`,
+                {
+                    method:"POST",
+                    headers:authHeader()
+                }
+            );
+        const d =
+            await r.json();
+        if(!r.ok){
+            showToast("즐겨찾기 실패");
+            return;
+        }
+        isFavorite =
+            d.data.isFavorite;
+        updateFavoriteButton();
+        showToast(
+            isFavorite
+                ? "❤️ 즐겨찾기에 저장되었습니다."
+                : "🤍 즐겨찾기에서 제거되었습니다."
+        );
+    }catch(e){
+        console.error(e);
+    }
+}
+
 function setStar(n) {
     selectedStar = n;
     document.querySelectorAll('.star-pick').forEach((b, i) => b.classList.toggle('on', i < n));
