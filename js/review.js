@@ -283,20 +283,13 @@ async function toggleLike(reviewId, currentCount) {
     }
 }
 
-async function goPendingReview(
-    verificationId,
-    restaurantId
-){
-
-    currentVerificationId =
-        verificationId;
-
-    await openDetail({
-        id: restaurantId
-    });
-
-    goWrite();
-
+async function goPendingReview(verificationId, restaurantId) {
+    currentVerificationId = verificationId;
+    await openDetail({ id: restaurantId });
+    // 💡 detail 화면이 완전히 렌더된 후 write로 이동
+    setTimeout(() => {
+        goWrite();
+    }, 300);
 }
 
 // ── 리뷰 작성 ─────────────────────────────
