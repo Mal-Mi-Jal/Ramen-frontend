@@ -135,7 +135,6 @@ async function completeVerify() {
 
 function closeVerify(e) {
     if (e && e.target !== document.getElementById('verify-modal')) return;
-    clearInterval(timerInterval);
     document.getElementById('verify-modal').style.display = 'none';
 }
 
