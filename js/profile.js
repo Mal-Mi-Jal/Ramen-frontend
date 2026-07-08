@@ -341,3 +341,48 @@ id:'${f.restaurantId}'
 
 }
 
+async function openFavorite(id) {
+
+    try {
+
+        const r =
+            await fetch(
+                `${API}/restaurants/${id}`
+            );
+
+        const d =
+            await r.json();
+
+        if (!r.ok || !d.success) {
+
+            showToast("식당 정보를 불러오지 못했습니다.");
+
+            return;
+
+        }
+
+        currentRestaurant =
+            d.data;
+
+        isFavorite =
+            d.data.isFavorite;
+
+        updateFavoriteButton();
+
+        restaurantCache[currentRestaurant.id] =
+            currentRestaurant;
+
+        navigate("detail");
+
+        renderRestaurantDetail();
+
+        loadReviews(currentRestaurant.id);
+
+    } catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
