@@ -66,3 +66,25 @@ function navigate(name) {
 document.addEventListener('click', () => {
     document.querySelectorAll('.review-dropdown.open').forEach(m => m.classList.remove('open'));
 });
+
+// 💡 로그인하거나 홈 진입 시 PENDING 인증 있으면 백그라운드 폴링 시작
+async function checkAndStartPolling() {
+    if (!token) return;
+    try {
+        const r = await fetch(`${API}/verifications/current`, { headers: authHeader() });
+        const d = await r.json();
+        if (d.data && d.data.status === 'pending') {
+            const remaining = d.data.remaining_seconds || 0;
+            currentVerificationId = d.data.verification_id;
+            if (remaining <= 0) {
+                // 이미 시간 지났으면 바로 폴링
+                pollVerificationStatus();
+            } else {
+                // 남은 시간 후에 폴링 시작
+                setTimeout(() => {
+                    pollVerificationStatus();
+                }, remaining * 1000);
+            }
+        }
+    } catch (e) {}
+}
