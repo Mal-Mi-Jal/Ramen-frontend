@@ -126,6 +126,9 @@ async function openDetail(rest) {
         }
         
         currentRestaurant = d.data;
+        isFavorite =
+        d.data.isFavorite;
+        updateFavoriteButton();
         restaurantCache[currentRestaurant.id] = currentRestaurant;
         navigate("detail");
         renderRestaurantDetail();
