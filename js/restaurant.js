@@ -199,7 +199,7 @@ function renderRestaurantDetail(){
                 const markerPosition = new kakao.maps.LatLng(lat, lng);
                 const marker = new kakao.maps.Marker({ position: markerPosition });
                 marker.setMap(map);
-                setTimeout(() => { map.relayout(); map.setCenter(markerPosition); }, 0);
+                setTimeout(() => { map.relayout(); map.setCenter(markerPosition); }, 300);
             });
             document.getElementById("detail-kakao-link").href =
                 currentRestaurant.kakao_place_id
