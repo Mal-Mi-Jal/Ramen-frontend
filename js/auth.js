@@ -70,6 +70,7 @@ async function afterLogin() {
             currentUser = { id: d.data.id, email: d.data.email, nickname: d.data.nickname };
         }
     } catch (e) {}
+    checkAndStartPolling();
     navigate('home');
 }
 
