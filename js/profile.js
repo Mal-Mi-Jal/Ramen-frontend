@@ -165,20 +165,14 @@ function renderVisitHistory(visits) {
 }
 
 async function loadPendingReviews(){
-
     try{
-
         const r =
             await fetch(
-
                 API + "/users/me/pending-review",
-
                 {
                     headers:authHeader()
                 }
-
             );
-
         const d =
             await r.json();
 
@@ -189,18 +183,12 @@ async function loadPendingReviews(){
 
         const reviews =
             d.data || [];
-
         if(reviews.length===0){
-
             box.style.display="none";
-
             return;
-
         }
         box.style.display = "block";
-
         box.innerHTML =
-
 `
 <div class="pending-review-header">
 
@@ -272,4 +260,84 @@ reviews.map(rv=>{
 
 }
 
+async function loadFavorites(){
+
+    try{
+
+        const r =
+            await fetch(
+
+                API + "/users/me/favorites",
+
+                {
+
+                    headers:authHeader()
+
+                }
+
+            );
+
+        const d =
+            await r.json();
+
+        const list =
+            document.getElementById(
+                "favorite-list"
+            );
+
+        const favorites =
+            d.data || [];
+
+        if(favorites.length===0){
+
+            list.innerHTML =
+                `
+                <div class="empty">
+
+                    ❤️ 아직 즐겨찾기가 없습니다.
+
+                </div>
+                `;
+
+            return;
+
+        }
+
+        list.innerHTML =
+
+favorites.map(f=>`
+
+<div
+
+class="restaurant-card"
+
+onclick="openDetail({
+
+id:'${f.restaurantId}'
+
+})">
+
+    <div class="restaurant-name">
+
+        ${f.restaurantName}
+
+    </div>
+
+    <div class="restaurant-address">
+
+        ${f.address}
+
+    </div>
+
+</div>
+
+`).join("");
+
+    }catch(e){
+
+        console.error(e);
+
+    }
+
+}
 
