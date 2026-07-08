@@ -93,6 +93,7 @@ async function pollVerificationStatus() {
                     '<i class="ti ti-circle-check"></i> 체류 인증 완료!';
                 document.getElementById("verify-cta").style.display = "block";
                 showToast('✅ 방문 인증이 완료됐어요! 리뷰를 남겨보세요.');
+                await loadPendingReviews();
                 return;
             }
         } catch (e) {
