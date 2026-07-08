@@ -516,6 +516,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     background:rgba(255,255,255,.28);
 
 }
+
+#favorite-list{
+
+    padding:16px;
+
+}
 .detail-extra{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px}
 .detail-extra-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;color:var(--text)}
 .detail-extra-row i{font-size:18px;color:var(--text2);flex-shrink:0}
