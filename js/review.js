@@ -311,10 +311,10 @@ function updateFavoriteButton(){
     if(!btn) return;
     if(isFavorite){
         btn.classList.add("active");
-        btn.textContent = "❤️ 저장됨";
+        btn.textContent = "❤️";
     }else{
         btn.classList.remove("active");
-        btn.textContent = "🤍 저장";
+        btn.textContent = "🤍";
     }
 }
 
