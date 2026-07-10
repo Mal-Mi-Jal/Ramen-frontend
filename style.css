@@ -531,7 +531,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     gap:16px;
 
-    padding:24px 20px;
+    padding:22px 24px 18px;
 
     background:white;
 
@@ -541,17 +541,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .sub-hero h2{
 
-    font-size:22px;
-
-    margin-bottom:4px;
+    font-size:28px;
+    font-weight:800;
 
 }
 
 .sub-hero p{
 
-    font-size:13px;
+    margin-top:6px;
 
-    color:var(--text2);
+    font-size:14px;
+
+    color:#7C7C7C;
 
 }
 
@@ -749,7 +750,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     cursor:pointer;
 
-    margin-bottom:12px;
+    margin-bottom:14px;
 
     padding:0;
 
