@@ -327,15 +327,37 @@ onclick="openFavorite('${f.restaurantId}')">
 
     <div class="favorite-info">
 
-        <div class="favorite-name">
+        <div class="favorite-top">
 
-            ${f.restaurantName}
+            <div class="favorite-name">
+
+                ${f.restaurantName}
+
+            </div>
+
+            <div class="favorite-heart">
+
+                ❤️
+
+            </div>
 
         </div>
 
         <div class="favorite-address">
 
             ${f.address}
+
+        </div>
+
+        <div class="favorite-meta">
+
+            ⭐ ${Number(f.averageRating).toFixed(1)}
+
+            <span>
+
+                리뷰 ${f.reviewCount}개
+
+            </span>
 
         </div>
 
