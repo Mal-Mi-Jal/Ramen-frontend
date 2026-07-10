@@ -368,7 +368,7 @@ onclick="openFavorite('${f.restaurantId}')">
 
         <div class="favorite-arrow">
 
-            TEST
+            >
 
     </div>
 
