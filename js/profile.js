@@ -335,7 +335,10 @@ onclick="openFavorite('${f.restaurantId}')">
 
             </div>
 
-            <div class="favorite-card-heart">
+           <div
+            class="favorite-card-heart"
+
+            onclick="event.stopPropagation(); removeFavorite('${f.restaurantId}'); return false;">
 
                 ❤️
 
@@ -360,6 +363,12 @@ onclick="openFavorite('${f.restaurantId}')">
             </span>
 
         </div>
+
+    </div>
+
+        <div class="favorite-arrow">
+
+        <i class="ti ti-chevron-right"></i>
 
     </div>
 
@@ -412,6 +421,42 @@ async function openFavorite(id) {
         loadReviews(currentRestaurant.id);
 
     } catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
+async function removeFavorite(id){
+
+    try{
+
+        const r =
+            await fetch(
+                `${API}/restaurants/${id}/favorite`,
+                {
+                    method:"POST",
+                    headers:authHeader()
+                }
+            );
+
+        const d =
+            await r.json();
+
+        if(!r.ok){
+
+            showToast("삭제 실패");
+
+            return;
+
+        }
+
+        showToast("🤍 즐겨찾기에서 제거되었습니다.");
+        profileCache = null;
+        loadFavorites();
+
+    }catch(e){
 
         console.error(e);
 
