@@ -208,27 +208,28 @@
 
 <div class="screen" id="screen-favorites">
 
-    <div class="topbar">
+    <div class="sub-hero">
 
-        <button class="icon-btn" onclick="navigate('profile')">
+        <button class="back-btn"
+                onclick="navigate('profile')">
 
             <i class="ti ti-arrow-left"></i>
 
         </button>
 
-        <div class="title">즐겨찾기</div>
+        <div>
 
-    </div>
+            <h2>즐겨찾기</h2>
 
-    <div id="favorite-list">
-
-        <div class="loading">
-
-            불러오는 중...
+            <p id="favorite-count">
+                좋아하는 라멘집을 모아봤어요 🍜
+            </p>
 
         </div>
 
     </div>
+
+    <div id="favorite-list"></div>
 
 </div>
 
