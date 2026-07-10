@@ -281,36 +281,62 @@ async function loadFavorites(){
             d.data || [];
 
         if(favorites.length===0){
-            list.innerHTML =
-                `
-                <div class="empty">
-                    ❤️ 아직 즐겨찾기가 없습니다.
-                </div>
-                `;
-            return;
 
-        }
-       list.innerHTML = favorites.map(f=>`
+    document.getElementById("favorite-count").textContent =
+        "아직 저장한 라멘집이 없어요.";
+
+    list.innerHTML = `
+
+    <div class="empty-state">
+
+        <div style="font-size:54px;">❤️</div>
+
+        <h3>즐겨찾기가 비어있어요</h3>
+
+        <p>
+
+            마음에 드는 라멘집을 저장해보세요.
+
+        </p>
+
+    </div>
+
+    `;
+
+    return;
+
+}
+       document.getElementById("favorite-count").textContent =
+    `❤️ ${favorites.length}개의 맛집을 저장했어요`;
+
+list.innerHTML = favorites.map(f=>`
 
 <div class="favorite-card"
-     onclick="openFavorite('${f.restaurantId}')">
+
+onclick="openFavorite('${f.restaurantId}')">
 
     <div class="favorite-thumb">
+
         ${
             f.thumbnail
-            ? `<img src="${f.thumbnail}" alt="">`
+            ? `<img src="${f.thumbnail}">`
             : "🍜"
         }
+
     </div>
 
     <div class="favorite-info">
 
         <div class="favorite-name">
+
             ${f.restaurantName}
+
         </div>
 
         <div class="favorite-address">
+
             ${f.address}
+
         </div>
 
     </div>
