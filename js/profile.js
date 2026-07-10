@@ -335,7 +335,7 @@ onclick="openFavorite('${f.restaurantId}')">
 
             </div>
 
-            <div class="favorite-heart">
+            <div class="favorite-card-heart">
 
                 ❤️
 
