@@ -375,10 +375,13 @@ async function openFavorite(id) {
 
     try {
 
-        const r =
-            await fetch(
-                `${API}/restaurants/${id}`
-            );
+       const r =
+    await fetch(
+        `${API}/restaurants/${id}`,
+        {
+            headers: authHeader()
+        }
+    );
 
         const d =
             await r.json();
