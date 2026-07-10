@@ -368,7 +368,7 @@ onclick="openFavorite('${f.restaurantId}')">
 
         <div class="favorite-arrow">
 
-        <i class="ti ti-chevron-right"></i>
+            >
 
     </div>
 
