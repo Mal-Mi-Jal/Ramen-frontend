@@ -619,9 +619,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 }
 
 .favorite-info{
-
     flex:1;
-
+    min-width:0;
 }
 
 .favorite-name{
@@ -688,11 +687,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .favorite-arrow{
 
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    width:24px;
+
     font-size:22px;
 
     color:#B8B8B8;
 
-    margin-left:12px;
+    flex-shrink:0;
 
 }
 
