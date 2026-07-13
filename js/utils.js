@@ -1,4 +1,16 @@
 const API = 'https://ramen-production.up.railway.app';
+const SUPABASE_URL =
+    "https://whbavqoikolkdbuohjxv.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_LcZCnc_syjMEZS7k3j7-CQ_JopqZg3H";
+
+const supabase =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
 
 function authHeader() {
     return token ? { 'Authorization': 'Bearer ' + token } : {};
