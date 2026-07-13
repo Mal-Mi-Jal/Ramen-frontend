@@ -201,57 +201,53 @@ async function submitReview() {
         return;
     }
 
-    // 새 리뷰 작성 모드
-    if (!currentVerificationId) { showToast('방문 인증이 필요해요'); return; }
-    try {
-        const r = await fetch(API + '/reviews', {
-            method: 'POST',
-            headers: { ...authHeader(), 'Content-Type': 'application/json' },
-            const imageUrls =
-                await uploadImages();
+   // 새 리뷰 작성 모드
+if (!currentVerificationId) {
+    showToast('방문 인증이 필요해요');
+    return;
+}
 
-              body: JSON.stringify({
-            
-                restaurant_id: currentRestaurant.id,
-            
-                verification_id: currentVerificationId,
-            
-                rating: selectedStar,
-            
-                content,
-            
-                revisit_intention: selectedRevisit,
-            
-                image_urls: imageUrls
-            
-            })
-        });
-       if (r.ok || r.status === 201) {
-           myReviewsCache = null;
-            profileCache = null;
-            delete restaurantCache[currentRestaurant.id];
+try {
+
+    const imageUrls = await uploadImages();
+
+    const r = await fetch(API + '/reviews', {
+        method: 'POST',
+        headers: {
+            ...authHeader(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            restaurant_id: currentRestaurant.id,
+            verification_id: currentVerificationId,
+            rating: selectedStar,
+            content,
+            revisit_intention: selectedRevisit,
+            image_url: imageUrls
+        })
+    });
+
+    if (r.ok || r.status === 201) {
+        myReviewsCache = null;
+        profileCache = null;
+        delete restaurantCache[currentRestaurant.id];
 
         showToast('리뷰가 등록됐어요! 🍜');
 
         currentVerificationId = null;
 
         setTimeout(async () => {
-
-        navigate('detail');
-
-        await refreshCurrentRestaurantStats();
-
-        await loadReviews(currentRestaurant.id);
-
-    }, 300);
-
+            navigate('detail');
+            await refreshCurrentRestaurantStats();
+            await loadReviews(currentRestaurant.id);
+        }, 300);
     } else {
-            const d = await r.json();
-            showToast(d.message || '리뷰 등록에 실패했어요');
-        }
-    } catch (e) {
-        showToast('서버에 연결할 수 없어요');
+        const d = await r.json();
+        showToast(d.message || '리뷰 등록에 실패했어요');
     }
+} catch (e) {
+    console.error(e);
+    showToast('서버에 연결할 수 없어요');
 }
 
 // ── 내 리뷰 ───────────────────────────────
