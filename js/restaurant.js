@@ -1,15 +1,4 @@
 
-const SUPABASE_URL =
-    "https://whbavqoikolkdbuohjxv.supabase.co";
-
-const SUPABASE_KEY =
-    "sb_publishable_LcZCnc_syjMEZS7k3j7-CQ_JopqZg3H";
-
-const supabase =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
 
 
 // ── 주변 라멘집 ───────────────────────────
