@@ -207,12 +207,23 @@ async function submitReview() {
         const r = await fetch(API + '/reviews', {
             method: 'POST',
             headers: { ...authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                restaurant_id: currentRestaurant?.id,
+            const imageUrls =
+                await uploadImages();
+
+              body: JSON.stringify({
+            
+                restaurant_id: currentRestaurant.id,
+            
                 verification_id: currentVerificationId,
+            
                 rating: selectedStar,
+            
                 content,
-                revisit_intention: selectedRevisit
+            
+                revisit_intention: selectedRevisit,
+            
+                image_urls: imageUrls
+            
             })
         });
        if (r.ok || r.status === 201) {
