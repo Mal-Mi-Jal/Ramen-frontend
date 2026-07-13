@@ -197,9 +197,8 @@ async function submitReview() {
             }
         } catch (e) {
             showToast('서버에 연결할 수 없어요.');
+            return;
         }
-    }
-        return;
     }
 
    // 새 리뷰 작성 모드
