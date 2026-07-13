@@ -134,9 +134,34 @@
         </div>
       </div>
       <div>
-        <div class="section-title">리뷰</div>
-        <textarea id="review-text" placeholder="국물 맛, 면의 쫄깃함, 차슈 등 솔직하게 남겨주세요!"></textarea>
-      </div>
+  <div class="section-title">리뷰</div>
+
+  <textarea
+      id="review-text"
+      placeholder="국물 맛, 면의 쫄깃함, 차슈 등 솔직하게 남겨주세요!">
+  </textarea>
+
+  <!-- 📷 사진 업로드 -->
+  <input
+      id="review-images"
+      type="file"
+      accept="image/*"
+      multiple
+      style="display:none">
+
+  <button
+      class="photo-btn"
+      onclick="document.getElementById('review-images').click()">
+
+      <i class="ti ti-camera"></i>
+
+      사진 추가
+
+  </button>
+
+  <div id="image-preview"></div>
+
+</div>
       <div>
         <div class="section-title">재방문 의사</div>
         <div class="revisit-row">
