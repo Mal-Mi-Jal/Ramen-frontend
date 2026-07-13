@@ -1,6 +1,3 @@
-// ==========================
-// Supabase
-// ==========================
 
 const SUPABASE_URL =
     "https://whbavqoikolkdbuohjxv.supabase.co";
