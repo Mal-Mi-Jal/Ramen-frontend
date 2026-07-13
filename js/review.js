@@ -401,7 +401,7 @@ async function uploadImages(){
             crypto.randomUUID() + "." + ext;
 
         const { data, error } =
-            await supabase.storage
+            await supabaseClient.storage
                 .from("review-images")
                 .upload(
                     `reviews/${fileName}`,
@@ -414,7 +414,7 @@ async function uploadImages(){
         }
 
         const { data: publicUrl } =
-            supabase.storage
+            supabaseClient.storage
                 .from("review-images")
                 .getPublicUrl(
                     data.path
