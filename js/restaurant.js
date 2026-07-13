@@ -1,6 +1,4 @@
 
-
-
 // ── 주변 라멘집 ───────────────────────────
 async function loadNearbyRestaurants() {
     const list = document.getElementById('restaurant-list');
