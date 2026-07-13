@@ -1,3 +1,20 @@
+// ==========================
+// Supabase
+// ==========================
+
+const SUPABASE_URL =
+    "https://너프로젝트.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_xxxxxxxxxxxxxxxxx";
+
+const supabase =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
 // ── 주변 라멘집 ───────────────────────────
 async function loadNearbyRestaurants() {
     const list = document.getElementById('restaurant-list');
