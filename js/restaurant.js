@@ -3,10 +3,10 @@
 // ==========================
 
 const SUPABASE_URL =
-    "https://너프로젝트.supabase.co";
+    "https://whbavqoikolkdbuohjxv.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable_xxxxxxxxxxxxxxxxx";
+    "sb_publishable_LcZCnc_syjMEZS7k3j7-CQ_JopqZg3H";
 
 const supabase =
     window.supabase.createClient(
