@@ -379,3 +379,44 @@ function renderMyReviews(reviews){
             .join("");
 
 }
+
+async function uploadImages(){
+
+    const urls = [];
+
+    for(const file of selectedImages){
+
+        const ext =
+            file.name.split(".").pop();
+
+        const fileName =
+            crypto.randomUUID() + "." + ext;
+
+        const { data, error } =
+            await supabase.storage
+                .from("review-images")
+                .upload(
+                    `reviews/${fileName}`,
+                    file
+                );
+
+        if(error){
+            console.error(error);
+            throw error;
+        }
+
+        const { data: publicUrl } =
+            supabase.storage
+                .from("review-images")
+                .getPublicUrl(
+                    data.path
+                );
+
+        urls.push(
+            publicUrl.publicUrl
+        );
+
+    }
+    return urls;
+
+}
