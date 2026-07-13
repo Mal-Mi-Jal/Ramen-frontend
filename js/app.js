@@ -65,8 +65,54 @@ function navigate(name) {
     if (name === 'favorites') loadFavorites();
 }
 
+// 사진 미리보기
+function renderPreview(){
+
+    const preview =
+        document.getElementById(
+            "image-preview"
+        );
+
+    preview.innerHTML = "";
+
+    selectedImages.forEach(file=>{
+
+        const url =
+            URL.createObjectURL(file);
+
+        preview.innerHTML +=
+
+        `
+        <img
+            src="${url}"
+            class="preview-img">
+        `;
+
+    });
+
+}
+
 // 드롭다운 외부 클릭 시 닫기
 document.addEventListener('click', () => {
     document.querySelectorAll('.review-dropdown.open').forEach(m => m.classList.remove('open'));
 });
 
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const input =
+        document.getElementById("review-images");
+
+    if(!input) return;
+
+    input.addEventListener("change", e => {
+
+        selectedImages =
+            [...e.target.files];
+
+        renderPreview();
+
+    });
+
+});
