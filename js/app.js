@@ -14,6 +14,7 @@ let profileCache = null;
 let visitHistoryCache = null;
 let myReviewsCache = null;
 let isFavorite = false;
+let selectedImages = [];
 const PAGE_SIZE = 10;
 
 // ── 초기화 ────────────────────────────────
