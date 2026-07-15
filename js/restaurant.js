@@ -27,7 +27,7 @@ async function loadNearbyRestaurants() {
             return;
         }
         const nearbyList = d.data?.restaurants || [];
-        showToast(`주변 라멘집 ${nearbyList.length}개 발견`);
+        showToast(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         nearbyRestaurantsCache = restaurants;
         renderRestaurantList(restaurants);
     
