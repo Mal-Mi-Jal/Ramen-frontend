@@ -16,6 +16,10 @@ async function loadNearbyRestaurants() {
     try {
         const pos = await getPosition();
         const { latitude, longitude } = pos.coords;
+        // 테스트
+        console.log("📍 현재 GPS", latitude, longitude);
+        showToast(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        // 여기 위까지
         const r = await fetch(
             `${API}/restaurants/nearby?latitude=${latitude}&longitude=${longitude}`,
             { headers: authHeader() }
