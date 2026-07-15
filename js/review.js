@@ -56,7 +56,20 @@ function renderReviewItem(rv, isMine) {
       ${rv.content || ''}
     </div>
 
-    <div class="review-tags">
+     ${rv.photos && rv.photos.length > 0 ? `
+    <div class="review-photos">
+      ${rv.photos.map(p => `
+        <img 
+          class="review-photo" 
+          src="${p.image_url}" 
+          alt="리뷰 사진"
+          onclick="openPhotoViewer('${p.image_url}')"
+        >
+      `).join('')}
+    </div>
+  ` : ''}
+  
+  <div class="review-tags">
       <span class="tag ${rv.revisit_intention ? 'revisit' : ''}">
         ${rv.revisit_intention ? '재방문 의사 있음' : '재방문 의사 없음'}
       </span>
