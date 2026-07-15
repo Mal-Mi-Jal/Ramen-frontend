@@ -26,6 +26,8 @@ async function loadNearbyRestaurants() {
             list.innerHTML = '<div class="empty">주변에 등록된 라멘집이 없어요 🍜</div>';
             return;
         }
+        const nearbyList = d.data?.restaurants || [];
+        showToast(`주변 라멘집 ${nearbyList.length}개 발견`);
         nearbyRestaurantsCache = restaurants;
         renderRestaurantList(restaurants);
     
