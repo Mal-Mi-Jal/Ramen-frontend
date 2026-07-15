@@ -54,8 +54,9 @@ function navigate(name) {
     document.getElementById('screen-' + name).classList.add('active');
     const nav = document.getElementById('bottom-nav');
     const hideNavScreens = ['auth', 'write', 'visits', 'myreviews', 'editprofile','favorites'];
+    if (name === 'map') loadMapScreen();
     nav.style.display = hideNavScreens.includes(name) ? 'none' : 'flex';
-    ['home', 'profile'].forEach(n => {
+    ['home','map','profile'].forEach(n => {
         document.getElementById('nav-' + n)?.classList.toggle('active', n === name);
     });
     if (name === 'home') loadNearbyRestaurants();
