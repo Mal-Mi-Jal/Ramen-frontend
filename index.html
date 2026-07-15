@@ -198,6 +198,22 @@
     <button class="logout-btn" onclick="doLogout()">로그아웃</button>
   </div>
 
+  <!-- MAP -->
+<div class="screen" id="screen-map">
+  <div class="map-screen-wrap">
+    <div id="kakao-map-view"></div>
+    <div class="map-search-bar">
+      <i class="ti ti-search"></i>
+      <input
+        id="map-search-input"
+        type="text"
+        placeholder="지역이나 라멘집 검색"
+        onkeydown="if(event.key==='Enter') searchOnMap()">
+      <button onclick="searchOnMap()">검색</button>
+    </div>
+  </div>
+</div>
+
   <!-- VISIT HISTORY -->
 <div class="screen" id="screen-visits">
   <div class="page-header">
@@ -336,7 +352,7 @@
   <!-- BOTTOM NAV -->
   <div class="bottom-nav" id="bottom-nav" style="display:none">
     <button class="nav-btn active" id="nav-home" onclick="navigate('home')"><i class="ti ti-home"></i>홈</button>
-    <button class="nav-btn" id="nav-map" onclick="showToast('카카오맵 연동 예정')"><i class="ti ti-map"></i>지도</button>
+    <button class="nav-btn" id="nav-map" onclick="navigate('map')"><i class="ti ti-map"></i>지도</button>
     <button class="nav-btn" id="nav-profile" onclick="navigate('profile')"><i class="ti ti-user"></i>프로필</button>
   </div>
 
