@@ -432,12 +432,17 @@ async function uploadImages(){
                 .getPublicUrl(
                     data.path
                 );
-
         urls.push(
             publicUrl.publicUrl
         );
-
     }
     return urls;
+}
 
+function openPhotoViewer(url) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  overlay.innerHTML = `<img src="${url}" style="max-width:90%;max-height:90%;border-radius:8px;object-fit:contain">`;
+  overlay.onclick = () => document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
 }
