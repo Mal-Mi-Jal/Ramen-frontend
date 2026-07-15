@@ -28,6 +28,8 @@ async function loadNearbyRestaurants() {
         }
         nearbyRestaurantsCache = restaurants;
         renderRestaurantList(restaurants);
+        const restaurants = d.data?.restaurants || [];
+        showToast(`주변 라멘집 ${restaurants.length}개 발견`); // 💡 임시
     } catch (e) {
         list.innerHTML = '<div class="empty">위치 정보를 가져올 수 없어요.<br>브라우저 위치 권한을 허용해주세요.</div>';
     }
